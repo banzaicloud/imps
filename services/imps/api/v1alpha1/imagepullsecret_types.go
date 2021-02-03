@@ -6,6 +6,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// TODO: refactor, let's have a top level target,
+// target:
+//   -> secretName
+//   -> namespaces
+//			 -> withMatchingPods
+
 // ImagePullSecretSpec defines the desired state of ImagePullSecret
 type ImagePullSecretSpec struct {
 	// TargetSecret specifies what should be the name of the secret created in a
@@ -18,8 +24,8 @@ type ImagePullSecretSpec struct {
 	// selectors are specified if one is matches the secret will be managed (OR)
 	Pods []metav1.LabelSelector `json:"pods,omitempty"`
 
-	// ImagePullSecret contains the details of the secret to be created in each namespace
-	ImagePullSecret ImagePullSecretConfig `json:"imagePullSecret"`
+	// Registry contains the details of the secret to be created in each namespace
+	Registry RegistryConfig `json:"imagePullSecret"`
 }
 
 type NamespaceSelectorConfiguration struct {
@@ -28,7 +34,7 @@ type NamespaceSelectorConfiguration struct {
 	// selectors are specified if one is matches the secret will be managed (OR)
 	Selectors []metav1.LabelSelector `json:"selectors,omitempty"`
 	// Namespaces specifies additional namespaces by name to generate the secret into
-	Namespaces []string `json:"namespaces,omitempty"`
+	Names []string `json:"names,omitempty"`
 }
 
 // TargetSecretConfig describes the properties of the secrets created in each selected namespadce
@@ -48,8 +54,8 @@ const (
 	RegistryPassthru = RegistryType("passthru")
 )
 
-// ImagePullSecretConfig specifies what secret to be used as the basis of the pull secets
-type ImagePullSecretConfig struct {
+// RegistryConfig specifies what secret to be used as the basis of the pull secets
+type RegistryConfig struct {
 	// Registry specifies which registry backend is used, if left empty the system will assume
 	// passthru mode, in case of ECR the Credentials secret is expected to contain an ECR IAM user's
 	// secrets.

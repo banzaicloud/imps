@@ -5,6 +5,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/banzaicloud/operator-tools/pkg/reconciler"
+
 	logrintegration "logur.dev/integration/logr"
 
 	"github.com/banzaicloud/backyards/internal/platform/errorhandler"
@@ -88,10 +90,11 @@ func main() {
 
 	impsLogger := logur.WithField(logger, "controller", "imagepullsecrets")
 	impsReconciler := &controllers.ImagePullSecretReconciler{
-		Client:       mgr.GetClient(),
-		Log:          impsLogger,
-		ErrorHandler: errorHandler,
-		Scheme:       mgr.GetScheme(),
+		Client:             mgr.GetClient(),
+		Log:                impsLogger,
+		ErrorHandler:       errorHandler,
+		Scheme:             mgr.GetScheme(),
+		ResourceReconciler: reconciler.NewReconcilerWith(mgr.GetClient(), reconciler.WithLog(logrintegration.New(impsLogger))),
 	}
 
 	if err = impsReconciler.SetupWithManager(mgr); err != nil {
