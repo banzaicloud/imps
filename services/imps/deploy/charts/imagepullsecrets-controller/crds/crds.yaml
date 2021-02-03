@@ -31,6 +31,178 @@ spec:
           type: object
         spec:
           description: ImagePullSecretSpec defines the desired state of ImagePullSecret
+          properties:
+            imagePullSecret:
+              description: ImagePullSecret contains the details of the secret to be
+                created in each namespace
+              properties:
+                credentials:
+                  description: Credentials specifies which secret to be used as the
+                    source for docker login credentials
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                  required:
+                  - name
+                  - namespace
+                  type: object
+                registry:
+                  description: Registry specifies which registry backend is used,
+                    if left empty the system will assume passthru mode, in case of
+                    ECR the Credentials secret is expected to contain an ECR IAM user's
+                    secrets.
+                  enum:
+                  - ecr
+                  - passthru
+                  type: string
+              required:
+              - credentials
+              type: object
+            namespaces:
+              description: Namespaces specify conditions on the namespaces that should
+                have the TargetSecret generated
+              properties:
+                namespaces:
+                  description: Namespaces specifies additional namespaces by name
+                    to generate the secret into
+                  items:
+                    type: string
+                  type: array
+                selectors:
+                  description: Selectors specify the conditions, which are matched
+                    against the namespaces labels to decide if this ImagePullSecret
+                    should be applied to the given namespace, if multiple selectors
+                    are specified if one is matches the secret will be managed (OR)
+                  items:
+                    description: A label selector is a label query over a set of resources.
+                      The result of matchLabels and matchExpressions are ANDed. An
+                      empty label selector matches all objects. A null label selector
+                      matches no objects.
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
+                        items:
+                          description: A label selector requirement is a selector
+                            that contains values, a key, and an operator that relates
+                            the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector
+                                applies to.
+                              type: string
+                            operator:
+                              description: operator represents a key's relationship
+                                to a set of values. Valid operators are In, NotIn,
+                                Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: values is an array of string values. If
+                                the operator is In or NotIn, the values array must
+                                be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced
+                                during a strategic merge patch.
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: matchLabels is a map of {key,value} pairs. A
+                          single {key,value} in the matchLabels map is equivalent
+                          to an element of matchExpressions, whose key field is "key",
+                          the operator is "In", and the values array contains only
+                          "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                  type: array
+              type: object
+            pods:
+              description: Pods specify the conditions, which are matched against
+                the pods in each namespace to decide if this ImagePullSecret should
+                be applied to the given pod's namespace, if multiple selectors are
+                specified if one is matches the secret will be managed (OR)
+              items:
+                description: A label selector is a label query over a set of resources.
+                  The result of matchLabels and matchExpressions are ANDed. An empty
+                  label selector matches all objects. A null label selector matches
+                  no objects.
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
+                    items:
+                      description: A label selector requirement is a selector that
+                        contains values, a key, and an operator that relates the key
+                        and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies
+                            to.
+                          type: string
+                        operator:
+                          description: operator represents a key's relationship to
+                            a set of values. Valid operators are In, NotIn, Exists
+                            and DoesNotExist.
+                          type: string
+                        values:
+                          description: values is an array of string values. If the
+                            operator is In or NotIn, the values array must be non-empty.
+                            If the operator is Exists or DoesNotExist, the values
+                            array must be empty. This array is replaced during a strategic
+                            merge patch.
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: matchLabels is a map of {key,value} pairs. A single
+                      {key,value} in the matchLabels map is equivalent to an element
+                      of matchExpressions, whose key field is "key", the operator
+                      is "In", and the values array contains only "value". The requirements
+                      are ANDed.
+                    type: object
+                type: object
+              type: array
+            targetSecret:
+              description: TargetSecret specifies what should be the name of the secret
+                created in a given namespace
+              properties:
+                annotations:
+                  additionalProperties:
+                    type: string
+                  description: Annotations specifies additional annotations to be
+                    put on the Secret object
+                  type: object
+                labels:
+                  additionalProperties:
+                    type: string
+                  description: Labels specifies additional labels to be put on the
+                    Secret object
+                  type: object
+                name:
+                  description: Name specifies the name of the secret object inside
+                    all the selected namespace
+                  type: string
+              required:
+              - name
+              type: object
+          required:
+          - imagePullSecret
+          - targetSecret
           type: object
         status:
           description: ImagePullSecretStatus defines the observed state of ImagePullSecret
