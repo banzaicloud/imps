@@ -20,14 +20,14 @@ import (
 
 type PeriodicReconciler struct {
 	client.Client
-	log           logur.Logger
+	log            logur.Logger
 	impsReconciler *controllers.ImagePullSecretReconciler
 }
 
 func NewPeriodicReconciler(log logur.Logger, client client.Client, imps *controllers.ImagePullSecretReconciler) *PeriodicReconciler {
 	return &PeriodicReconciler{
-		Client:        client,
-		log:           log,
+		Client:         client,
+		log:            log,
 		impsReconciler: imps,
 	}
 }

@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	emperror.dev/emperror v0.32.0
-	github.com/banzaicloud/backyards v0.0.1
+	github.com/banzaicloud/backyards v0.0.0-00010101000000-000000000000
 	github.com/banzaicloud/backyards/pkg/platform/log v0.0.0
 	github.com/onsi/gomega v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.5
