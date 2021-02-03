@@ -1,0 +1,7 @@
+domain: banzaicloud.io
+repo: github.com/banzaicloud/backyards/services/imp
+resources:
+- group: images
+  kind: ImagePullSecret
+  version: v1alpha1
+version: "2"

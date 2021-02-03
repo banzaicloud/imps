@@ -1,0 +1,65 @@
+# Default values for imagepullsecret-controller
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+clusterName: master
+prometheus:
+  apiAddresses:
+    - http://prometheus:9090
+  queryAddress: http://prometheus:9090
+  directQueryAddress: http://prometheus:9090
+
+replicaCount: 1
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+istio:
+  revision: ""
+
+podAnnotations: []
+imagePullSecrets: {}
+podSecurityContext:
+  runAsUser: 65534
+  runAsGroup: 65534
+securityContext:
+  allowPrivilegeEscalation: false
+image:
+  repository: ghcr.io/banzaicloud/imagepullsecrets
+  tag: latest
+  pullPolicy: IfNotPresent
+nodeSelector: {}
+affinity: {}
+tolerations: {}
+resources:
+  requests:
+    memory: "100Mi"
+    cpu: "100m"
+  limits:
+    memory: "200Mi"
+    cpu: "300m"
+
+service:
+  type: ClusterIP
+  port: 8080
+
+serviceAccount:
+  annotations: {}
+
+serviceMonitor:
+  scrapeInterval: 5s
+  tlsConfig: {}
+
+developmentMode:
+  enabled: false
+
+podDisruptionBudget:
+  enabled: false
+# operatorVersion:
+
+log:
+  {}
+  # level: info # accepted values: panic, fatal, error, warn, warning, info, debug, trace

@@ -1,0 +1,26 @@
+{{- if eq .Values.clusterName "master" }}
+apiVersion: monitoring.backyards.banzaicloud.io/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "imagepullsecret-controller.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "imagepullsecret-controller.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include  "imagepullsecret-controller.selectorLabels" . | nindent 8  }}
+  namespaceSelector:
+    matchNames: [ {{ .Release.Namespace }} ]
+  endpoints:
+  - interval: {{ .Values.serviceMonitor.scrapeInterval }}
+    port: http-metrics
+    honorTimestamps: true
+{{- if .Values.serviceMonitor.tlsConfig }}
+    scheme: https
+    tlsConfig:
+{{ toYaml .Values.serviceMonitor.tlsConfig | indent 6 }}
+{{- end }}
+    relabelings:
+      {{ include "prometheus.metrics.default-metrics" . | nindent 6 }}
+{{- end }}

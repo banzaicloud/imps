@@ -1,0 +1,14 @@
+apiVersion: v1
+name: imagepullsecrets-controller
+description: Dynamically manage pull secrets for images
+home: https://banzaicloud.com
+
+maintainers:
+- email: info@banzaicloud.com
+  name: Banzai Cloud
+sources:
+- https://github.com/banzaicloud/backyards
+
+version: 0.1.0
+appVersion: 0.1.0
+

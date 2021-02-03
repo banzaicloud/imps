@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "imagepullsecret-controller.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "imagepullsecret-controller.labels" . | nindent 4 }}
+spec:
+{{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "imagepullsecret-controller.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        backyards.banzaicloud.io/scraping-interval: "{{ .Values.serviceMonitor.scrapeInterval }}"
+        {{- if .Values.developmentMode.enabled }}
+        backyards.banzaicloud.io/operator-release: "{{ .Values.operatorVersion }}"
+        {{- else }}
+        backyards.banzaicloud.io/operator-release: stable
+        {{- end }}
+        {{- if .Values.istio.revision }}
+        istio.banzaicloud.io/rev: {{ .Values.istio.revision }}
+        {{- end }}
+    {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "imagepullsecret-controller.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "imagepullsecret-controller.fullname" . }}
+      containers:
+        - name: controller
+          args:
+            - --metrics-addr=:8080
+            - --enable-leader-election
+            - --config-namespace={{ .Release.Namespace }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: metrics
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+          {{- if .Values.log.level }}
+            - name: LOG_LEVEL
+              value: "{{ .Values.log.level }}"
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
