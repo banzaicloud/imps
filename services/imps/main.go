@@ -86,20 +86,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	impLogger := logur.WithField(logger, "controller", "imagepullsecrets")
-	impReconciler := &controllers.ImagePullSecretReconciler{
+	impsLogger := logur.WithField(logger, "controller", "imagepullsecrets")
+	impsReconciler := &controllers.ImagePullSecretReconciler{
 		Client:       mgr.GetClient(),
-		Log:          impLogger,
+		Log:          impsLogger,
 		ErrorHandler: errorHandler,
 		Scheme:       mgr.GetScheme(),
 	}
 
-	if err = impReconciler.SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "servicelevelobjective")
+	if err = impsReconciler.SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "imagepullsecrets")
 		os.Exit(1)
 	}
 
-	periodicReconciler := cron.NewPeriodicReconciler(logger, mgr.GetClient(), impReconciler)
+	periodicReconciler := cron.NewPeriodicReconciler(logger, mgr.GetClient(), impsReconciler)
 	err = mgr.Add(periodicReconciler.Reconcile(periodicReconcileInterval))
 	if err != nil {
 		setupLog.Error(err, "unable add a runnable to the manager")
@@ -115,7 +115,7 @@ func main() {
 	}
 }
 
-const FriendlyServiceName = "imp"
+const FriendlyServiceName = "imps"
 
 func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.AllowEmptyEnv(true)
