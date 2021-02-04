@@ -1,3 +1,5 @@
+// Copyright (c) 2021 Banzai Cloud Zrt. All Rights Reserved.
+
 package controllers
 
 import (
@@ -194,8 +196,6 @@ func (r *ImagePullSecretReconciler) anyPodMatchesSelectorInNS(ctx context.Contex
 	}
 	return false, nil
 }
-
-// TODO: remove unmanaged ones
 
 func (r *ImagePullSecretReconciler) reconcileSecretInNamespace(imps *v1alpha1.ImagePullSecret, targetNamespace string) error {
 	finalLabels := imps.Spec.Target.Secret.Labels.DeepCopy()

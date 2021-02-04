@@ -1,3 +1,5 @@
+// Copyright (c) 2021 Banzai Cloud Zrt. All Rights Reserved.
+
 package v1alpha1
 
 import (
