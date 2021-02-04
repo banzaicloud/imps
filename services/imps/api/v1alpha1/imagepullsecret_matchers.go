@@ -8,13 +8,14 @@ import (
 )
 
 func (i ImagePullSecret) MatchesNamespace(ns *corev1.Namespace) (bool, error) {
-	for _, name := range i.Spec.Namespaces.Names {
+	for _, name := range i.Spec.Target.Namespaces.Names {
 		if ns.Name == name {
 			return true, nil
 		}
 	}
 
-	for _, labelSelector := range i.Spec.Namespaces.Selectors {
+	for _, labelSelector := range i.Spec.Target.Namespaces.Selectors {
+		labelSelector := labelSelector
 		matcher, err := metav1.LabelSelectorAsSelector(&labelSelector)
 		if err != nil {
 			return false, err
@@ -28,7 +29,8 @@ func (i ImagePullSecret) MatchesNamespace(ns *corev1.Namespace) (bool, error) {
 }
 
 func (i ImagePullSecret) MatchesPod(pod *corev1.Pod) (bool, error) {
-	for _, labelSelector := range i.Spec.Pods {
+	for _, labelSelector := range i.Spec.Target.NamespacesWithPods {
+		labelSelector := labelSelector
 		matcher, err := metav1.LabelSelectorAsSelector(&labelSelector)
 		if err != nil {
 			return false, err
@@ -45,7 +47,7 @@ func (i ImagePullSecret) SplitNamespacesByMatch(allNs corev1.NamespaceList) ([]c
 	match := []corev1.Namespace{}
 	nonMatch := []corev1.Namespace{}
 	for _, ns := range allNs.Items {
-		itemMatches, err := i.MatchesNamespace(&ns)
+		itemMatches, err := i.MatchesNamespace(ns.DeepCopy())
 		if err != nil {
 			return nil, nil, errors.WrapWithDetails(err, "cannot filter namespaces", map[string]interface{}{
 				"ns":   ns,

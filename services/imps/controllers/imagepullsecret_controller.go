@@ -53,6 +53,11 @@ func (r *ImagePullSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			&source.Kind{Type: &corev1.Namespace{}},
 			&handler.EnqueueRequestsFromMapFunc{
 				ToRequests: handler.ToRequestsFunc(r.impsMatchingNamespace),
+			}).
+		Watches(
+			&source.Kind{Type: &corev1.Pod{}},
+			&handler.EnqueueRequestsFromMapFunc{
+				ToRequests: handler.ToRequestsFunc(r.impsMatchingPod),
 			})
 
 	return builder.Complete(r)
@@ -72,6 +77,7 @@ func (r *ImagePullSecretReconciler) impsMatchingNamespace(obj handler.MapObject)
 		r.Log.Info(err.Error())
 		return []ctrl.Request{}
 	}
+
 	var res []ctrl.Request
 	for _, imps := range impsList.Items {
 		matches, err := imps.MatchesNamespace(ns)
@@ -81,7 +87,9 @@ func (r *ImagePullSecretReconciler) impsMatchingNamespace(obj handler.MapObject)
 				"namespace": ns,
 				"error":     err,
 			})
+			continue
 		}
+
 		if matches {
 			res = append(res, ctrl.Request{
 				NamespacedName: types.NamespacedName{
@@ -97,13 +105,28 @@ func (r *ImagePullSecretReconciler) impsMatchingNamespace(obj handler.MapObject)
 func (r *ImagePullSecretReconciler) impsMatchingPod(obj handler.MapObject) []ctrl.Request {
 	pod, ok := obj.Object.(*corev1.Pod)
 	if !ok {
-		r.Log.Info("object is not a Pod")
+		r.Log.Info("object is not a Pod or Namespace")
 		return []ctrl.Request{}
+	}
+
+	// If the namespace containing the pod matches, let's not add the pod to the reconciliation queue.
+	// This prevents reconciliations to start on each pod startup when the namespace selectors are properly used.
+	podsNamespace := &corev1.Namespace{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Name: pod.Namespace,
+	}, podsNamespace)
+
+	if err != nil {
+		r.Log.Warn("cannot get pod's namespace, please authorize the controller to list namespaces, or too many reconcilations will be executed", map[string]interface{}{
+			"error":     err,
+			"namespace": pod.Namespace,
+		})
+		podsNamespace = nil
 	}
 
 	impsList := &v1alpha1.ImagePullSecretList{}
 
-	err := r.Client.List(context.TODO(), impsList)
+	err = r.Client.List(context.TODO(), impsList)
 	if err != nil {
 		r.Log.Info(err.Error())
 		return []ctrl.Request{}
@@ -112,15 +135,27 @@ func (r *ImagePullSecretReconciler) impsMatchingPod(obj handler.MapObject) []ctr
 	for _, imps := range impsList.Items {
 		matches, err := imps.MatchesPod(pod)
 		if err != nil {
-			r.Log.Info("cannot match imps against a pod", map[string]interface{}{
+			r.Log.Info("cannot match imps against pod", map[string]interface{}{
 				"imps":  imps,
 				"pod":   pod,
 				"error": err,
 			})
+			continue
 		}
+
 		if matches {
-			// TODO: only add matches if the namespace does not match, to decrease reconciliation
-			// steps
+			if podsNamespace != nil {
+				nsMatches, err := imps.MatchesNamespace(podsNamespace)
+				if err != nil {
+					r.Log.Info("cannot match imps against namespace", map[string]interface{}{
+						"imps":      imps,
+						"namespace": podsNamespace,
+						"error":     err,
+					})
+				} else if nsMatches {
+					continue
+				}
+			}
 			res = append(res, ctrl.Request{
 				NamespacedName: types.NamespacedName{
 					Name:      imps.GetName(),

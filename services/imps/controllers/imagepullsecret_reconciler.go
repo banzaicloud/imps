@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -14,6 +15,13 @@ import (
 
 	"logur.dev/logur"
 	ctrl "sigs.k8s.io/controller-runtime"
+)
+
+var (
+	requeueObject = ctrl.Result{
+		Requeue:      true,
+		RequeueAfter: 5 * time.Second,
+	}
 )
 
 func (r *ImagePullSecretReconciler) reconcile(req ctrl.Request) (ctrl.Result, error) {
@@ -34,40 +42,113 @@ func (r *ImagePullSecretReconciler) reconcile(req ctrl.Request) (ctrl.Result, er
 
 	result, err = r.reconcileImagePullSecret(ctx, &imps)
 
+	// TODO: add status handling here
 	logger.Info("Reconciling ImagePullSecret finished")
-	return result, nil
+	return result, err
 }
 
 func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context, imps *v1alpha1.ImagePullSecret) (ctrl.Result, error) {
+	targetNamespaces, err := r.namespacesRequiringSecret(ctx, imps)
+	if err != nil {
+		r.Log.Warn("cannot get the list of namespaces requiring this secret", map[string]interface{}{
+			"error": err,
+			"imps":  imps,
+		})
+		return requeueObject, err
+	}
+
+	// Let's continue in case of errors the initial secret creation as in case of ECR the tokens will expire, thus
+	// it's better to reconcile what we can decreasing the blast radius of such reconciliation errors
+	wasError := false
+	// Reconcile secrets in selected namespaces
+	for _, namespaceName := range targetNamespaces {
+		err = r.reconcileSecretInNamespace(imps, namespaceName)
+
+		if err != nil {
+			r.Log.Warn("cannot reconcile secret in namespace, skipping", map[string]interface{}{
+				"ns":    namespaceName,
+				"error": err,
+				"imps":  imps,
+			})
+			wasError = true
+			continue
+		}
+		r.Log.Info("reconciled secret", map[string]interface{}{
+			"namespace": namespaceName,
+			"name":      imps.Spec.Target.Secret.Name,
+		})
+	}
+
+	if wasError {
+		return requeueObject, errors.New("some secrets failed to reconcile")
+	}
+
+	var ownedSecrets corev1.SecretList
+	err = r.Client.List(ctx, &ownedSecrets, client.MatchingLabels{
+		labelImpsOwnerUID: string(imps.UID),
+	})
+	if err != nil {
+		r.Log.Warn("cannot enumerate secrets owned by imps", map[string]interface{}{
+			"error": err,
+			"imps":  imps,
+		})
+		return requeueObject, err
+	}
+
+	// Purge secrets that should not be there based on the selectors
+	for _, existingSecret := range ownedSecrets.Items {
+		shouldDelete := false
+		if existingSecret.Name != imps.Spec.Target.Secret.Name {
+			r.Log.Info("secret name does not match the expected one, removing", map[string]interface{}{
+				"secret_name":       existingSecret.Name,
+				"secret_name_space": existingSecret.Namespace,
+				"imps":              imps.Name,
+			})
+			shouldDelete = true
+		}
+
+		if !targetNamespaces.Has(existingSecret.Namespace) {
+			r.Log.Info("found secret in unselected namespace, removing", map[string]interface{}{
+				"secret_name":       existingSecret.Name,
+				"secret_name_space": existingSecret.Namespace,
+				"imps":              imps.Name,
+			})
+		}
+
+		if shouldDelete {
+			_, err := r.ResourceReconciler.ReconcileResource(existingSecret.DeepCopy(), reconciler.StateAbsent)
+			if err != nil {
+				r.Log.Error("cannot delete secret", map[string]interface{}{
+					"secret": existingSecret,
+				})
+				return requeueObject, err
+			}
+		}
+	}
+
+	return ctrl.Result{}, nil
+}
+
+func (r *ImagePullSecretReconciler) namespacesRequiringSecret(ctx context.Context, imps *v1alpha1.ImagePullSecret) (StringSet, error) {
 	var allNamespaces corev1.NamespaceList
+	namespacesRequiringSecret := StringSet{}
+
 	err := r.List(ctx, &allNamespaces)
 	if err != nil {
-		return ctrl.Result{}, errors.Wrap(err, "cannot list namespaces")
+		return nil, errors.Wrap(err, "cannot list namespaces")
 	}
 
 	matchingNamespaces, nonMatchingNamespaces, err := imps.SplitNamespacesByMatch(allNamespaces)
 	if err != nil {
-		return ctrl.Result{}, err
+		return nil, err
 	}
 
 	for _, ns := range matchingNamespaces {
-		err = r.reconcileSecretInNamespace(ctx, imps, ns.Name)
-		if err != nil {
-			r.Log.Warn("cannot reconcile service in namespace, skipping", map[string]interface{}{
-				"ns":    ns,
-				"error": err,
-				"imps":  imps,
-			})
-			continue
-		}
-		r.Log.Info("reconciled service", map[string]interface{}{
-			"namespace": ns.Name,
-			"name":      imps.Spec.TargetSecret,
-		})
+		namespacesRequiringSecret = append(namespacesRequiringSecret, ns.Name)
 	}
 
 	for _, ns := range nonMatchingNamespaces {
-		shouldReconcile, err := r.anyPodMatchesSelectorInNS(ctx, imps, &ns)
+		shouldReconcile, err := r.anyPodMatchesSelectorInNS(ctx, imps, ns.DeepCopy())
 		if err != nil {
 			r.Log.Warn("cannot check for matching pods in namespace, skipping", map[string]interface{}{
 				"ns":    ns,
@@ -77,29 +158,16 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 			continue
 		}
 		if shouldReconcile {
-			err = r.reconcileSecretInNamespace(ctx, imps, ns.Name)
-			if err != nil {
-				r.Log.Warn("cannot reconcile service in namespace, skipping", map[string]interface{}{
-					"ns":    ns,
-					"error": err,
-					"imps":  imps,
-				})
-				continue
-			}
-			r.Log.Info("reconciled service", map[string]interface{}{
-				"namespace": ns.Name,
-				"name":      imps.Spec.TargetSecret,
-			})
+			namespacesRequiringSecret = append(namespacesRequiringSecret, ns.Name)
 		}
 	}
 
-	// TODO: in case of reconciliation errors -> requeue!
-	return ctrl.Result{}, nil
+	return namespacesRequiringSecret, nil
 }
 
 func (r *ImagePullSecretReconciler) anyPodMatchesSelectorInNS(ctx context.Context, imps *v1alpha1.ImagePullSecret, ns *corev1.Namespace) (bool, error) {
 	// Let's prevent pod queries if there are no pod selector rules
-	if len(imps.Spec.Pods) == 0 {
+	if len(imps.Spec.Target.NamespacesWithPods) == 0 {
 		return false, nil
 	}
 
@@ -110,7 +178,7 @@ func (r *ImagePullSecretReconciler) anyPodMatchesSelectorInNS(ctx context.Contex
 	}
 
 	for _, pod := range podsInNamespace.Items {
-		matches, err := imps.MatchesPod(&pod)
+		matches, err := imps.MatchesPod(pod.DeepCopy())
 		if err != nil {
 			r.Log.Warn("cannot match pod against an imps", map[string]interface{}{
 				"error": err,
@@ -129,13 +197,17 @@ func (r *ImagePullSecretReconciler) anyPodMatchesSelectorInNS(ctx context.Contex
 
 // TODO: remove unmanaged ones
 
-func (r *ImagePullSecretReconciler) reconcileSecretInNamespace(ctx context.Context, imps *v1alpha1.ImagePullSecret, targetNamespace string) error {
+func (r *ImagePullSecretReconciler) reconcileSecretInNamespace(imps *v1alpha1.ImagePullSecret, targetNamespace string) error {
+	finalLabels := imps.Spec.Target.Secret.Labels.DeepCopy()
+	finalLabels[labelImpsOwnerUID] = string(imps.UID)
+
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        imps.Spec.TargetSecret.Name,
-			Namespace:   targetNamespace,
-			Labels:      imps.Spec.TargetSecret.Labels,
-			Annotations: imps.Spec.TargetSecret.Annotations,
+			Name:            imps.Spec.Target.Secret.Name,
+			Namespace:       targetNamespace,
+			Labels:          finalLabels,
+			Annotations:     imps.Spec.Target.Secret.Annotations,
+			OwnerReferences: []metav1.OwnerReference{imps.GetOwnerReferenceForOwnedObject()},
 		},
 		Data: map[string][]byte{
 			"test": []byte("test"),
