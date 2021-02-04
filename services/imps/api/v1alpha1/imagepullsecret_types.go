@@ -47,20 +47,8 @@ type TargetSecretConfig struct {
 	Annotations LabelSet `json:"annotations,omitempty"`
 }
 
-type RegistryType string
-
-const (
-	RegistryECR      = RegistryType("ecr")
-	RegistryPassthru = RegistryType("passthru")
-)
-
 // RegistryConfig specifies what secret to be used as the basis of the pull secets
 type RegistryConfig struct {
-	// Registry specifies which registry backend is used, if left empty the system will assume
-	// passthru mode, in case of ECR the Credentials secret is expected to contain an ECR IAM user's
-	// secrets.
-	// +kubebuilder:validation:Enum=ecr;passthru
-	Type RegistryType `json:"type,omitempty"`
 	// Credentials specifies which secret to be used as the source for docker login credentials
 	Credentials NamespacedName `json:"credentials"`
 }

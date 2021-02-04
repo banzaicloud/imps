@@ -32,7 +32,6 @@ spec:
           - key: "banzai-should-have-secrets"
             operator: "Exists"
   registry:
-    type: "ecr"
     credentials:
       name: "imps-test-1"
       namespace: "imps-test"
