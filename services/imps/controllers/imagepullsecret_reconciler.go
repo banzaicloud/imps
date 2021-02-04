@@ -4,6 +4,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -28,6 +29,17 @@ var (
 	}
 )
 
+func (r *ImagePullSecretReconciler) setStatus(ctx context.Context, imps *v1alpha1.ImagePullSecret, status v1alpha1.ReconciliationStatus) {
+	imps.Status = v1alpha1.ImagePullSecretStatus{Status: status}
+	err := r.Status().Update(ctx, imps)
+	if err != nil {
+		r.Log.Error("cannot update status field", map[string]interface{}{
+			"error": err,
+			"imps":  imps,
+		})
+	}
+}
+
 func (r *ImagePullSecretReconciler) reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	logger := logur.WithField(r.Log, "imagepullsecret", req.NamespacedName)
@@ -44,6 +56,8 @@ func (r *ImagePullSecretReconciler) reconcile(req ctrl.Request) (ctrl.Result, er
 		return result, nil
 	}
 
+	initialRun := imps.Status.Status == ""
+
 	var referencedSecret corev1.Secret
 	err = r.Get(ctx, types.NamespacedName{
 		Namespace: imps.Spec.Registry.Credentials.Namespace,
@@ -51,12 +65,20 @@ func (r *ImagePullSecretReconciler) reconcile(req ctrl.Request) (ctrl.Result, er
 	}, &referencedSecret)
 
 	if err != nil {
+		r.setStatus(ctx, &imps, v1alpha1.ReconciliationFailed)
+		r.Recorder.Event(&imps, "Warning", "SourceCredentialsAccessError", fmt.Sprintf("Cannot get registry credentials secret: %s/%s", imps.Spec.Registry.Credentials.Namespace, imps.Spec.Registry.Credentials.Name))
 		return result, errors.WrapWithDetails(err, "cannot get referenced secret", "imps_name", imps.Name)
 	}
 
 	result, err = r.reconcileImagePullSecret(ctx, &imps, &referencedSecret)
-
-	// TODO: add status handling here
+	if err != nil {
+		r.setStatus(ctx, &imps, v1alpha1.ReconciliationFailed)
+	} else {
+		if initialRun {
+			r.Recorder.Event(&imps, "Normal", "Reconciled", "Successfully reconciled selected secrets")
+		}
+		r.setStatus(ctx, &imps, v1alpha1.ReconciliationReady)
+	}
 	logger.Info("Reconciling ImagePullSecret finished")
 	return result, err
 }
@@ -68,6 +90,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 			"error": err,
 			"imps":  imps,
 		})
+		r.Recorder.Event(imps, "Warning", "SecretReconciliationError", fmt.Sprintf("Cannot list namespaces requiring the secret: %s", err.Error()))
 		return requeueObject, err
 	}
 
@@ -84,6 +107,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 				"error": err,
 				"imps":  imps,
 			})
+			r.Recorder.Event(imps, "Warning", "SecretReconciliationError", fmt.Sprintf("Cannot reconcile secret: %s/%s", namespaceName, imps.Spec.Target.Secret.Name))
 			wasError = true
 			continue
 		}
@@ -106,6 +130,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 			"error": err,
 			"imps":  imps,
 		})
+		r.Recorder.Event(imps, "Warning", "SecretReconciliationError", fmt.Sprintf("Cannot enumerate secrets: %s", err.Error()))
 		return requeueObject, err
 	}
 
@@ -136,6 +161,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 				r.Log.Error("cannot delete secret", map[string]interface{}{
 					"secret": existingSecret,
 				})
+				r.Recorder.Event(imps, "Warning", "SecretDeletionError", fmt.Sprintf("Cannot remove secret %s/%s", existingSecret.Namespace, existingSecret.Name))
 				return requeueObject, err
 			}
 		}
@@ -211,7 +237,7 @@ func (r *ImagePullSecretReconciler) anyPodMatchesSelectorInNS(ctx context.Contex
 }
 
 func (r *ImagePullSecretReconciler) reconcileSecretInNamespace(imps *v1alpha1.ImagePullSecret, targetNamespace string, referencedSecret *corev1.Secret) error {
-	finalLabels := imps.Spec.Target.Secret.Labels.DeepCopy()
+	finalLabels := v1alpha1.LabelSet(imps.Spec.Target.Secret.Labels).DeepCopy()
 	finalLabels[labelImpsOwnerUID] = string(imps.UID)
 
 	secret := &corev1.Secret{

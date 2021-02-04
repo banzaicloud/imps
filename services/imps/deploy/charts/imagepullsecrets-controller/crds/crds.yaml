@@ -6,13 +6,23 @@ metadata:
   creationTimestamp: null
   name: imagepullsecrets.images.banzaicloud.io
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.status
+    description: Represents if the object has been successfully reconciled
+    format: byte
+    name: State
+    type: string
   group: images.banzaicloud.io
   names:
     kind: ImagePullSecret
     listKind: ImagePullSecretList
     plural: imagepullsecrets
+    shortNames:
+    - imps
     singular: imagepullsecret
-  scope: Namespaced
+  scope: Cluster
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: ImagePullSecret is the Schema for the imagepullsecrets API
@@ -179,13 +189,17 @@ spec:
                     secrets created in each selected namespace
                   properties:
                     annotations:
-                      $ref: '#/definitions/k8s.io~1apimachinery~1pkg~1labels~0Set'
+                      additionalProperties:
+                        type: string
                       description: Annotations specifies additional annotations to
                         be put on the Secret object
+                      type: object
                     labels:
-                      $ref: '#/definitions/k8s.io~1apimachinery~1pkg~1labels~0Set'
+                      additionalProperties:
+                        type: string
                       description: Labels specifies additional labels to be put on
                         the Secret object
+                      type: object
                     name:
                       description: Name specifies the name of the secret object inside
                         all the selected namespace
@@ -202,6 +216,9 @@ spec:
           type: object
         status:
           description: ImagePullSecretStatus defines the observed state of ImagePullSecret
+          properties:
+            status:
+              type: string
           type: object
       type: object
   version: v1alpha1
