@@ -58,6 +58,11 @@ func (r *ImagePullSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			&source.Kind{Type: &corev1.Pod{}},
 			&handler.EnqueueRequestsFromMapFunc{
 				ToRequests: handler.ToRequestsFunc(r.impsMatchingPod),
+			}).
+		Watches(
+			&source.Kind{Type: &corev1.Secret{}},
+			&handler.EnqueueRequestsFromMapFunc{
+				ToRequests: handler.ToRequestsFunc(r.impsReferencingSecret),
 			})
 
 	return builder.Complete(r)
@@ -167,4 +172,31 @@ func (r *ImagePullSecretReconciler) impsMatchingPod(obj handler.MapObject) []ctr
 	return res
 }
 
-// TODO: trigger reconciliation if secret changes
+func (r *ImagePullSecretReconciler) impsReferencingSecret(obj handler.MapObject) []ctrl.Request {
+	secret, ok := obj.Object.(*corev1.Secret)
+	if !ok {
+		r.Log.Info("object is not a Secret")
+		return []ctrl.Request{}
+	}
+
+	impsList := &v1alpha1.ImagePullSecretList{}
+
+	err := r.Client.List(context.TODO(), impsList)
+	if err != nil {
+		r.Log.Info(err.Error())
+		return []ctrl.Request{}
+	}
+
+	var res []ctrl.Request
+	for _, imps := range impsList.Items {
+		if imps.Spec.Registry.Credentials.Name == secret.Name && imps.Spec.Registry.Credentials.Namespace == secret.Namespace {
+			res = append(res, ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      imps.GetName(),
+					Namespace: imps.GetNamespace(),
+				},
+			})
+		}
+	}
+	return res
+}
