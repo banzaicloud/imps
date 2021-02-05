@@ -70,7 +70,6 @@ log:
 registry:
   user: a
   password: b
-  # TODO: make this configurable via the CLI
-  url: "https://index.docker.io/v1/"
+  url: c
 
 # TODO: add option to provision imps
