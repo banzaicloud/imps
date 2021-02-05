@@ -48,15 +48,6 @@ spec:
                   - name
                   - namespace
                   type: object
-                type:
-                  description: Registry specifies which registry backend is used,
-                    if left empty the system will assume passthru mode, in case of
-                    ECR the Credentials secret is expected to contain an ECR IAM user's
-                    secrets.
-                  enum:
-                  - ecr
-                  - passthru
-                  type: string
               required:
               - credentials
               type: object

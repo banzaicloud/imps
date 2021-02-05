@@ -6,6 +6,8 @@ import (
 	"context"
 	"time"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -42,14 +44,24 @@ func (r *ImagePullSecretReconciler) reconcile(req ctrl.Request) (ctrl.Result, er
 		return result, nil
 	}
 
-	result, err = r.reconcileImagePullSecret(ctx, &imps)
+	var referencedSecret corev1.Secret
+	err = r.Get(ctx, types.NamespacedName{
+		Namespace: imps.Spec.Registry.Credentials.Namespace,
+		Name:      imps.Spec.Registry.Credentials.Name,
+	}, &referencedSecret)
+
+	if err != nil {
+		return result, errors.WrapWithDetails(err, "cannot get referenced secret", "imps_name", imps.Name)
+	}
+
+	result, err = r.reconcileImagePullSecret(ctx, &imps, &referencedSecret)
 
 	// TODO: add status handling here
 	logger.Info("Reconciling ImagePullSecret finished")
 	return result, err
 }
 
-func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context, imps *v1alpha1.ImagePullSecret) (ctrl.Result, error) {
+func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context, imps *v1alpha1.ImagePullSecret, referencedSecret *corev1.Secret) (ctrl.Result, error) {
 	targetNamespaces, err := r.namespacesRequiringSecret(ctx, imps)
 	if err != nil {
 		r.Log.Warn("cannot get the list of namespaces requiring this secret", map[string]interface{}{
@@ -64,7 +76,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 	wasError := false
 	// Reconcile secrets in selected namespaces
 	for _, namespaceName := range targetNamespaces {
-		err = r.reconcileSecretInNamespace(imps, namespaceName)
+		err = r.reconcileSecretInNamespace(imps, namespaceName, referencedSecret)
 
 		if err != nil {
 			r.Log.Warn("cannot reconcile secret in namespace, skipping", map[string]interface{}{
@@ -102,19 +114,20 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 		shouldDelete := false
 		if existingSecret.Name != imps.Spec.Target.Secret.Name {
 			r.Log.Info("secret name does not match the expected one, removing", map[string]interface{}{
-				"secret_name":       existingSecret.Name,
-				"secret_name_space": existingSecret.Namespace,
-				"imps":              imps.Name,
+				"secret_name":      existingSecret.Name,
+				"secret_namespace": existingSecret.Namespace,
+				"imps":             imps.Name,
 			})
 			shouldDelete = true
 		}
 
 		if !targetNamespaces.Has(existingSecret.Namespace) {
 			r.Log.Info("found secret in unselected namespace, removing", map[string]interface{}{
-				"secret_name":       existingSecret.Name,
-				"secret_name_space": existingSecret.Namespace,
-				"imps":              imps.Name,
+				"secret_name":      existingSecret.Name,
+				"secret_namespace": existingSecret.Namespace,
+				"imps":             imps.Name,
 			})
+			shouldDelete = true
 		}
 
 		if shouldDelete {
@@ -197,7 +210,7 @@ func (r *ImagePullSecretReconciler) anyPodMatchesSelectorInNS(ctx context.Contex
 	return false, nil
 }
 
-func (r *ImagePullSecretReconciler) reconcileSecretInNamespace(imps *v1alpha1.ImagePullSecret, targetNamespace string) error {
+func (r *ImagePullSecretReconciler) reconcileSecretInNamespace(imps *v1alpha1.ImagePullSecret, targetNamespace string, referencedSecret *corev1.Secret) error {
 	finalLabels := imps.Spec.Target.Secret.Labels.DeepCopy()
 	finalLabels[labelImpsOwnerUID] = string(imps.UID)
 
@@ -209,9 +222,7 @@ func (r *ImagePullSecretReconciler) reconcileSecretInNamespace(imps *v1alpha1.Im
 			Annotations:     imps.Spec.Target.Secret.Annotations,
 			OwnerReferences: []metav1.OwnerReference{imps.GetOwnerReferenceForOwnedObject()},
 		},
-		Data: map[string][]byte{
-			"test": []byte("test"),
-		},
+		Data: referencedSecret.Data,
 	}
 
 	_, err := r.ResourceReconciler.ReconcileResource(secret, reconciler.StatePresent)
