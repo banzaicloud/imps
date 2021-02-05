@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/banzaicloud/backyards/pkg/platform/log"
+	"github.com/banzaicloud/backyards/pkg/common/log"
 	"github.com/banzaicloud/backyards/services/imps/controllers"
 
 	"os"

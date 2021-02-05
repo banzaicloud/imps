@@ -3,9 +3,9 @@ module github.com/banzaicloud/backyards/services/imps
 go 1.15
 
 require (
-	emperror.dev/emperror v0.32.0
+	emperror.dev/emperror v0.33.0
 	github.com/banzaicloud/backyards v0.0.0-00010101000000-000000000000
-	github.com/banzaicloud/backyards/pkg/platform/log v0.0.0
+	github.com/banzaicloud/backyards/pkg/common v0.0.0
 	github.com/onsi/gomega v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
@@ -20,9 +20,7 @@ require (
 replace (
 	github.com/banzaicloud/backyards => ../..
 	github.com/banzaicloud/backyards/pkg/common => ../../pkg/common
-	github.com/banzaicloud/backyards/pkg/platform/log => ../../pkg/platform/log
-	github.com/banzaicloud/backyards/pkg/prometheus => ../../pkg/prometheus
-	github.com/banzaicloud/backyards/pkg/template => ../../pkg/template
+	github.com/banzaicloud/backyards/services/health => ../../services/health
 
 	github.com/banzaicloud/backyards/services/imps/static => ./static
 	github.com/banzaicloud/backyards/services/sre => ../../services/sre

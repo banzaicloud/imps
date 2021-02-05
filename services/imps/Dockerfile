@@ -19,14 +19,8 @@ COPY ./services/sre/go.mod .
 COPY ./services/sre/go.sum .
 COPY ./go.mod /workspace/
 COPY ./go.sum /workspace/
-COPY ./pkg/platform/log/go.mod /workspace/pkg/platform/log/
-COPY ./pkg/platform/log/go.sum /workspace/pkg/platform/log/
 COPY ./pkg/common/go.mod /workspace/pkg/common/
 COPY ./pkg/common/go.sum /workspace/pkg/common/
-COPY ./pkg/prometheus/go.mod /workspace/pkg/prometheus/
-COPY ./pkg/prometheus/go.sum /workspace/pkg/prometheus/
-COPY ./pkg/template/go.mod /workspace/pkg/template/
-COPY ./pkg/template/go.sum /workspace/pkg/template/
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN git config --global url."https://${GITHUB_ACCESS_TOKEN}:@github.com/".insteadOf "https://github.com/"

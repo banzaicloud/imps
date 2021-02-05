@@ -1,4 +1,4 @@
 module github.com/banzaicloud/backyards/services/imps/static
 
-go 1.13
+go 1.15
 
