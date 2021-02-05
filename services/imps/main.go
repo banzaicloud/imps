@@ -56,7 +56,7 @@ func main() {
 	var configNamespace string
 
 	pflag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
-	pflag.IntVar(&periodicReconcileInterval, "periodic-reconcile-interval", 30, "The interval in seconds in which controller reconciles are run periodically.")
+	pflag.IntVar(&periodicReconcileInterval, "periodic-reconcile-interval", 300, "The interval in seconds in which controller reconciles are run periodically.")
 	pflag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -95,6 +95,7 @@ func main() {
 		ErrorHandler:       errorHandler,
 		Scheme:             mgr.GetScheme(),
 		ResourceReconciler: reconciler.NewReconcilerWith(mgr.GetClient(), reconciler.WithLog(logrintegration.New(impsLogger))),
+		Recorder:           mgr.GetEventRecorderFor("imagepullsecrets-controller"),
 	}
 
 	if err = impsReconciler.SetupWithManager(mgr); err != nil {

@@ -5,6 +5,8 @@ package controllers
 import (
 	"context"
 
+	"k8s.io/client-go/tools/record"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -30,6 +32,7 @@ type ImagePullSecretReconciler struct {
 	Log          logur.Logger
 	ErrorHandler emperror.ErrorHandler
 	Scheme       *runtime.Scheme
+	Recorder     record.EventRecorder
 
 	ResourceReconciler reconciler.ResourceReconciler
 }
@@ -37,7 +40,7 @@ type ImagePullSecretReconciler struct {
 // +kubebuilder:rbac:groups=images.banzaicloud.io,resources=imagepullsecrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=images.banzaicloud.io,resources=imagepullsecrets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
-
+// +kubebuilder:rbac:groups="",resources=events,verbs=create;update;patch
 func (r *ImagePullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	result, err := r.reconcile(req)
 	if err != nil {

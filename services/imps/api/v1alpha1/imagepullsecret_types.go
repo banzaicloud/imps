@@ -6,6 +6,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// TODO: This must be a non-namespaced object!
+
 // ImagePullSecretSpec defines the desired state of ImagePullSecret
 type ImagePullSecretSpec struct {
 	// Target specifies what should be the name of the secret created in a
@@ -42,9 +44,9 @@ type TargetSecretConfig struct {
 	// Name specifies the name of the secret object inside all the selected namespace
 	Name string `json:"name"`
 	// Labels specifies additional labels to be put on the Secret object
-	Labels LabelSet `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty"`
 	// Annotations specifies additional annotations to be put on the Secret object
-	Annotations LabelSet `json:"annotations,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // RegistryConfig specifies what secret to be used as the basis of the pull secets
@@ -53,10 +55,16 @@ type RegistryConfig struct {
 	Credentials NamespacedName `json:"credentials"`
 }
 
+type ReconciliationStatus string
+
+const (
+	ReconciliationReady  = "Ready"
+	ReconciliationFailed = "Failed"
+)
+
 // ImagePullSecretStatus defines the observed state of ImagePullSecret
 type ImagePullSecretStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	Status ReconciliationStatus `json:"status,omitempty"`
 }
 
 type NamespacedName struct {
@@ -70,6 +78,9 @@ type NamespacedName struct {
 
 // ImagePullSecret is the Schema for the imagepullsecrets API
 // +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
+// +kubebuilder:resource:path=imagepullsecrets,shortName=imps,scope=Cluster
+// +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.status",description="Represents if the object has been successfully reconciled",priority=0,format="byte"
 type ImagePullSecret struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
