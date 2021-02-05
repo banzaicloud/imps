@@ -29,12 +29,13 @@ podSecurityContext:
 securityContext:
   allowPrivilegeEscalation: false
 image:
-  repository: ghcr.io/banzaicloud/imagepullsecrets
-  tag: latest
+  repository: banzaicloud/imagepullsecrets
+  # TODO
+  tag: master
   pullPolicy: IfNotPresent
 nodeSelector: {}
 affinity: {}
-tolerations: {}
+tolerations: []
 resources:
   requests:
     memory: "100Mi"

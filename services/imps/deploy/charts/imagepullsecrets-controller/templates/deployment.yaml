@@ -30,10 +30,6 @@ spec:
       labels:
         {{- include "imagepullsecret-controller.labels" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "imagepullsecret-controller.fullname" . }}
@@ -78,3 +74,5 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      imagePullSecrets:
+        - name: {{ include "imagepullsecret-controller.fullname" . }}-pull-secret
