@@ -9,14 +9,7 @@ prometheus:
   queryAddress: http://prometheus:9090
   directQueryAddress: http://prometheus:9090
 
-# TODO: align deployment
 replicas: 1
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 istio:
   revision: ""
@@ -30,7 +23,6 @@ securityContext:
   allowPrivilegeEscalation: false
 image:
   repository: banzaicloud/imagepullsecrets
-  # TODO
   tag: master
   pullPolicy: IfNotPresent
 nodeSelector: {}
@@ -55,13 +47,11 @@ serviceMonitor:
   scrapeInterval: 5s
   tlsConfig: {}
 
-# TODO: support
 developmentMode:
   enabled: false
 
 podDisruptionBudget:
   enabled: false
-# operatorVersion:
 
 log:
   {}
@@ -71,5 +61,3 @@ registry:
   user: a
   password: b
   url: c
-
-# TODO: add option to provision imps
