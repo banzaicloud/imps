@@ -147,6 +147,7 @@ github.com/banzaicloud/canary-operator v0.0.0-20200819181217-7b5fe428ddd8/go.mod
 github.com/banzaicloud/istio-client-go v0.0.0-20200207164547-0c6796585145/go.mod h1:kKhUPoDXdY0EE1hTBiN+R9C2mVgSNyvkt8dZ/xb9obM=
 github.com/banzaicloud/istio-client-go v0.0.9/go.mod h1:rpnEYYGHzisx8nARl2d30Oq38EeCX0/PPaxMaREfE9I=
 github.com/banzaicloud/istio-operator v0.0.0-20210202140242-d431fd5f57ef/go.mod h1:QiI8K9ow62t09iIK9YYf8xDzZ17l8YGRTBx8QbKYo7o=
+github.com/banzaicloud/istio-operator v0.0.0-20210205182203-f814d51d90ff/go.mod h1:QiI8K9ow62t09iIK9YYf8xDzZ17l8YGRTBx8QbKYo7o=
 github.com/banzaicloud/k8s-objectmatcher v1.4.0/go.mod h1:j+N22VwgVfa0ajVtNxOz2G72aSOL21lpB7qV2GDrr/I=
 github.com/banzaicloud/k8s-objectmatcher v1.4.1/go.mod h1:j+N22VwgVfa0ajVtNxOz2G72aSOL21lpB7qV2GDrr/I=
 github.com/banzaicloud/k8s-objectmatcher v1.5.0 h1:mYrLzvRgxCHBlJZEcyIglDuoKpMhwHocgsAXl1nmm10=
