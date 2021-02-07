@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 
@@ -28,7 +29,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/banzaicloud/backyards/services/imps/api/v1alpha1"
-	"github.com/banzaicloud/backyards/services/imps/internal/cron"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -71,6 +71,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	periodicReconcileIntervalDuration := time.Duration(periodicReconcileInterval) * time.Second
+
 	// Create logger (first thing after configuration loading)
 	logger := log.NewLogger(config.Log)
 	ctrl.SetLogger(logrintegration.New(logger))
@@ -92,23 +94,17 @@ func main() {
 
 	impsLogger := logur.WithField(logger, "controller", "imagepullsecrets")
 	impsReconciler := &controllers.ImagePullSecretReconciler{
-		Client:             mgr.GetClient(),
-		Log:                impsLogger,
-		ErrorHandler:       errorHandler,
-		Scheme:             mgr.GetScheme(),
-		ResourceReconciler: reconciler.NewReconcilerWith(mgr.GetClient(), reconciler.WithLog(logrintegration.New(impsLogger))),
-		Recorder:           mgr.GetEventRecorderFor("imagepullsecrets-controller"),
+		Client:                    mgr.GetClient(),
+		Log:                       impsLogger,
+		ErrorHandler:              errorHandler,
+		Scheme:                    mgr.GetScheme(),
+		ResourceReconciler:        reconciler.NewReconcilerWith(mgr.GetClient(), reconciler.WithLog(logrintegration.New(impsLogger))),
+		Recorder:                  mgr.GetEventRecorderFor("imagepullsecrets-controller"),
+		PeriodicReconcileInterval: periodicReconcileIntervalDuration,
 	}
 
 	if err = impsReconciler.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "imagepullsecrets")
-		os.Exit(1)
-	}
-
-	periodicReconciler := cron.NewPeriodicReconciler(logger, mgr.GetClient(), impsReconciler)
-	err = mgr.Add(periodicReconciler.Reconcile(periodicReconcileInterval))
-	if err != nil {
-		setupLog.Error(err, "unable add a runnable to the manager")
 		os.Exit(1)
 	}
 

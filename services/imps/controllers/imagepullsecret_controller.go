@@ -4,26 +4,25 @@ package controllers
 
 import (
 	"context"
-
-	"k8s.io/client-go/tools/record"
-
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	"github.com/banzaicloud/operator-tools/pkg/reconciler"
+	"time"
 
 	"emperror.dev/emperror"
-
-	"k8s.io/apimachinery/pkg/runtime"
 	"logur.dev/logur"
+
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	ctrlBuilder "sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 
+	"github.com/banzaicloud/backyards/pkg/common/cron"
 	"github.com/banzaicloud/backyards/services/imps/api/v1alpha1"
+	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 )
 
 // AlertingPolicyReconciler reconciles a AlertingPolicy object
@@ -34,7 +33,8 @@ type ImagePullSecretReconciler struct {
 	Scheme       *runtime.Scheme
 	Recorder     record.EventRecorder
 
-	ResourceReconciler reconciler.ResourceReconciler
+	ResourceReconciler        reconciler.ResourceReconciler
+	PeriodicReconcileInterval time.Duration
 }
 
 // +kubebuilder:rbac:groups=images.banzaicloud.io,resources=imagepullsecrets,verbs=get;list;watch;create;update;patch;delete
@@ -43,6 +43,7 @@ type ImagePullSecretReconciler struct {
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;update;patch
 func (r *ImagePullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	result, err := r.reconcile(req)
+	result, err = cron.EnsurePeriodicReconcile(r.PeriodicReconcileInterval, result, err)
 	if err != nil {
 		r.ErrorHandler.Handle(err)
 	}
