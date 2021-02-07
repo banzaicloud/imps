@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: imps-test
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: imps-test-1
+  namespace: imps-test
+stringData:
+  test: "test12345"
+---
+apiVersion: images.banzaicloud.io/v1alpha1
+kind: ImagePullSecret
+metadata:
+  name: imps-test-1
+spec:
+  target:
+    secret:
+      name: "image-pull-secret-banzai"
+    namespaces:
+      names: ["imps-test"]
+      selectors:
+        - matchExpressions:
+            - key: "banzai-should-have-secrets"
+              operator: "Exists"
+    namespacesWithPods:
+      - matchExpressions:
+          - key: "banzai-should-have-secrets"
+            operator: "Exists"
+  registry:
+    credentials:
+      name: "imps-test-1"
+      namespace: "imps-test"
+
