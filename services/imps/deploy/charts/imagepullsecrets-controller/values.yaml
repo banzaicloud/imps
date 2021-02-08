@@ -9,31 +9,25 @@ prometheus:
   queryAddress: http://prometheus:9090
   directQueryAddress: http://prometheus:9090
 
-replicaCount: 1
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
+replicas: 1
 
 istio:
   revision: ""
 
 podAnnotations: []
-imagePullSecrets: {}
+
 podSecurityContext:
   runAsUser: 65534
   runAsGroup: 65534
 securityContext:
   allowPrivilegeEscalation: false
 image:
-  repository: ghcr.io/banzaicloud/imagepullsecrets
-  tag: latest
+  repository: banzaicloud/imagepullsecrets
+  tag: master
   pullPolicy: IfNotPresent
 nodeSelector: {}
 affinity: {}
-tolerations: {}
+tolerations: []
 resources:
   requests:
     memory: "100Mi"
@@ -58,8 +52,12 @@ developmentMode:
 
 podDisruptionBudget:
   enabled: false
-# operatorVersion:
 
 log:
   {}
   # level: info # accepted values: panic, fatal, error, warn, warning, info, debug, trace
+
+registry:
+  user: a
+  password: b
+  url: c
