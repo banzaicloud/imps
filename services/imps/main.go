@@ -82,7 +82,7 @@ func main() {
 		MetricsBindAddress:      metricsAddr,
 		Port:                    9443,
 		LeaderElection:          enableLeaderElection,
-		LeaderElectionID:        "733507e9.banzaicloud.io",
+		LeaderElectionID:        "73de1ad9.banzaicloud.io",
 		LeaderElectionNamespace: configNamespace,
 	})
 	if err != nil {

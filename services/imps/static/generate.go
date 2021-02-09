@@ -55,10 +55,10 @@ func main() {
 	var err error
 	err = vfsgen.Generate(
 		ZeroModTimeFileSystem{
-			http.Dir(path.Join(getRepoRoot(), "deploy/charts/imagepullsecrets-controller"))},
+			http.Dir(path.Join(getRepoRoot(), "deploy/charts/imagepullsecrets"))},
 		vfsgen.Options{
-			Filename:     "static/charts/imagepullsecrets_controller/chart.gogen.go",
-			PackageName:  "imagepullsecrets_controller",
+			Filename:     "static/charts/imagepullsecrets/chart.gogen.go",
+			PackageName:  "imagepullsecrets",
 			VariableName: "Chart",
 		})
 	if err != nil {
