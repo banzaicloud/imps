@@ -249,6 +249,7 @@ func (r *ImagePullSecretReconciler) reconcileSecretInNamespace(imps *v1alpha1.Im
 			OwnerReferences: []metav1.OwnerReference{imps.GetOwnerReferenceForOwnedObject()},
 		},
 		Data: referencedSecret.Data,
+		Type: referencedSecret.Type,
 	}
 
 	_, err := r.ResourceReconciler.ReconcileResource(secret, reconciler.StatePresent)
