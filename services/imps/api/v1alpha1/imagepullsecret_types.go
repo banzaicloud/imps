@@ -16,7 +16,6 @@ type ImagePullSecretSpec struct {
 	Registry RegistryConfig `json:"registry"`
 }
 
-// TODO: docs
 type NamespaceSelectorConfiguration struct {
 	ObjectSelectorConfiguration `json:",inline"`
 	// Namespaces specifies additional namespaces by name to generate the secret into
