@@ -208,7 +208,7 @@ func (r *ImagePullSecretReconciler) namespacesRequiringSecret(ctx context.Contex
 
 func (r *ImagePullSecretReconciler) anyPodMatchesSelectorInNS(ctx context.Context, imps *v1alpha1.ImagePullSecret, ns *corev1.Namespace) (bool, error) {
 	// Let's prevent pod queries if there are no pod selector rules
-	if len(imps.Spec.Target.NamespacesWithPods) == 0 {
+	if imps.Spec.Target.NamespacesWithPods.IsEmpty() {
 		return false, nil
 	}
 
