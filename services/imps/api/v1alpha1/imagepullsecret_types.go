@@ -6,8 +6,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// TODO: This must be a non-namespaced object!
-
 // ImagePullSecretSpec defines the desired state of ImagePullSecret
 type ImagePullSecretSpec struct {
 	// Target specifies what should be the name of the secret created in a
@@ -18,13 +16,27 @@ type ImagePullSecretSpec struct {
 	Registry RegistryConfig `json:"registry"`
 }
 
+// TODO: docs
 type NamespaceSelectorConfiguration struct {
+	ObjectSelectorConfiguration `json:",inline"`
+	// Namespaces specifies additional namespaces by name to generate the secret into
+	Names []string `json:"names,omitempty"`
+}
+
+type ObjectSelectorConfiguration struct {
+	// Labels specify the conditions, which are matched against the namespaces labels
+	// to decide if this ImagePullSecret should be applied to the given namespace, if multiple
+	// selectors are specified if one is matches the secret will be managed (OR)
+	Labels []metav1.LabelSelector `json:"labels,omitempty"`
 	// Selectors specify the conditions, which are matched against the namespaces labels
 	// to decide if this ImagePullSecret should be applied to the given namespace, if multiple
 	// selectors are specified if one is matches the secret will be managed (OR)
-	Selectors []metav1.LabelSelector `json:"selectors,omitempty"`
-	// Namespaces specifies additional namespaces by name to generate the secret into
-	Names []string `json:"names,omitempty"`
+	Annotations []AnnotationSelector `json:"annotations,omitempty"`
+}
+
+type AnnotationSelector struct {
+	MatchAnnotations map[string]string                 `json:"matchAnnotations,omitempty"`
+	MatchExpressions []metav1.LabelSelectorRequirement `json:"matchExpressions,omitempty"`
 }
 
 // TargetConfig describes the secret to be created and the selectors required to determine which namespaces should
@@ -36,7 +48,7 @@ type TargetConfig struct {
 	// Pods specify the conditions, which are matched against the pods in each namespace
 	// to decide if this ImagePullSecret should be applied to the given pod's namespace, if multiple
 	// selectors are specified if one is matches the secret will be managed (OR)
-	NamespacesWithPods []metav1.LabelSelector `json:"namespacesWithPods,omitempty"`
+	NamespacesWithPods ObjectSelectorConfiguration `json:"namespacesWithPods,omitempty"`
 }
 
 // TargetSecretConfig describes the properties of the secrets created in each selected namespace
