@@ -61,3 +61,9 @@ registry:
   user: a
   password: b
   url: c
+
+defaultConfig:
+  enabled: true
+  targetSecretName: backyards-pull-secret
+  namespaces: {}
+  namespacesWithPods: []
