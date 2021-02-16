@@ -3,6 +3,8 @@
 package pullsecrets
 
 import (
+	"context"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -14,8 +16,8 @@ const (
 
 	SecretKeyDockerConfig = ".dockerconfigjson"
 
-	ECRSecretRegion      = "region"
-	ECRSecretAccountID   = "accountID"
+	ECRSecretRegion         = "region"
+	ECRSecretAccountID      = "accountID"
 	ECRSecretKeyAccessKeyID = "accessKeyID"
 	ECRSecretSecretKey      = "secretKey"
 )
@@ -24,7 +26,7 @@ func NewBasicAuthSecret(secretNamespace, secretName, registry, user, password st
 	config := NewConfig()
 	config.AddRegistryWithUsernamePassword(registry, user, password)
 
-	dockerJSON, err := config.ConfigString()
+	dockerJSON, _, err := config.ConfigString(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +51,8 @@ func NewECRLoginCredentialsSecret(secretNamespace, secretName, accountID, region
 		},
 		Type: SecretTypeECRCredentials,
 		StringData: map[string]string{
-			ECRSecretRegion:      region,
-			ECRSecretAccountID:   accountID,
+			ECRSecretRegion:         region,
+			ECRSecretAccountID:      accountID,
 			ECRSecretKeyAccessKeyID: awsAccessKeyID,
 			ECRSecretSecretKey:      awsSecretAccessKey,
 		},

@@ -63,6 +63,6 @@ log:
 
 defaultConfig:
   enabled: true
-  targetSecretName: {{ .Values.defaultConfig.targetSecretName }}
+  targetSecretName: default-secret-name
   namespaces: {}
   namespacesWithPods: []
