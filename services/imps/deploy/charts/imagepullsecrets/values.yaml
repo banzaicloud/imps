@@ -25,6 +25,10 @@ image:
   repository: banzaicloud/imagepullsecrets
   tag: master
   pullPolicy: IfNotPresent
+  pullSecrets:
+    needed: false
+    dockerConfig: |
+      {}
 nodeSelector: {}
 affinity: {}
 tolerations: []
@@ -57,13 +61,8 @@ log:
   {}
   # level: info # accepted values: panic, fatal, error, warn, warning, info, debug, trace
 
-registry:
-  user: a
-  password: b
-  url: c
-
 defaultConfig:
   enabled: true
-  targetSecretName: backyards-pull-secret
+  targetSecretName: {{ .Values.defaultConfig.targetSecretName }}
   namespaces: {}
   namespacesWithPods: []

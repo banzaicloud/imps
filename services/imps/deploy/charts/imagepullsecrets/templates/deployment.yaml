@@ -72,5 +72,7 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{ if .Values.image.pullSecrets.needed }}
       imagePullSecrets:
-        - name: {{ include "imagepullsecret-controller.fullname" . }}-pull-secret
+        - name: backyards-pull-secret
+      {{ end }}

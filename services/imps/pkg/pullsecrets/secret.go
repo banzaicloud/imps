@@ -14,8 +14,8 @@ const (
 
 	SecretKeyDockerConfig = ".dockerconfigjson"
 
-	ECRSecretKeyRegion      = "region"
-	ECRSecretKeyAccountID   = "accountID"
+	ECRSecretRegion      = "region"
+	ECRSecretAccountID   = "accountID"
 	ECRSecretKeyAccessKeyID = "accessKeyID"
 	ECRSecretSecretKey      = "secretKey"
 )
@@ -49,8 +49,8 @@ func NewECRLoginCredentialsSecret(secretNamespace, secretName, accountID, region
 		},
 		Type: SecretTypeECRCredentials,
 		StringData: map[string]string{
-			ECRSecretKeyRegion:      region,
-			ECRSecretKeyAccountID:   accountID,
+			ECRSecretRegion:      region,
+			ECRSecretAccountID:   accountID,
 			ECRSecretKeyAccessKeyID: awsAccessKeyID,
 			ECRSecretSecretKey:      awsSecretAccessKey,
 		},
