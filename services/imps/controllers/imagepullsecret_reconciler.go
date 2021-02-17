@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"k8s.io/apimachinery/pkg/types"
+	"github.com/banzaicloud/backyards/services/imps/pkg/pullsecrets"
 
 	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -58,19 +58,20 @@ func (r *ImagePullSecretReconciler) reconcile(req ctrl.Request) (ctrl.Result, er
 
 	initialRun := imps.Status.Status == ""
 
-	var referencedSecret corev1.Secret
-	err = r.Get(ctx, types.NamespacedName{
-		Namespace: imps.Spec.Registry.Credentials.Namespace,
-		Name:      imps.Spec.Registry.Credentials.Name,
-	}, &referencedSecret)
+	config, err := pullsecrets.NewConfigFromSecrets(ctx, r, imps.Spec.Registry.CredentialsAsNamespacedNameList())
+	if err != nil {
+		return result, errors.WithStack(err)
+	}
 
+	pullSecret, _, err := config.Secret(ctx, "", imps.Spec.Target.Secret.Name)
 	if err != nil {
 		r.setStatus(ctx, &imps, v1alpha1.ReconciliationFailed)
-		r.Recorder.Event(&imps, "Warning", "SourceCredentialsAccessError", fmt.Sprintf("Cannot get registry credentials secret: %s/%s", imps.Spec.Registry.Credentials.Namespace, imps.Spec.Registry.Credentials.Name))
+		r.Recorder.Event(&imps, "Warning", "SourceCredentialsAccessError",
+			fmt.Sprintf("Cannot render registry credentials: %s", err.Error()))
 		return result, errors.WrapWithDetails(err, "cannot get referenced secret", "imps_name", imps.Name)
 	}
 
-	result, err = r.reconcileImagePullSecret(ctx, &imps, &referencedSecret)
+	result, err = r.reconcileImagePullSecret(ctx, &imps, pullSecret)
 	if err != nil {
 		r.setStatus(ctx, &imps, v1alpha1.ReconciliationFailed)
 	} else {
@@ -83,7 +84,7 @@ func (r *ImagePullSecretReconciler) reconcile(req ctrl.Request) (ctrl.Result, er
 	return result, err
 }
 
-func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context, imps *v1alpha1.ImagePullSecret, referencedSecret *corev1.Secret) (ctrl.Result, error) {
+func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context, imps *v1alpha1.ImagePullSecret, renderedPullSecret *corev1.Secret) (ctrl.Result, error) {
 	targetNamespaces, err := r.namespacesRequiringSecret(ctx, imps)
 	if err != nil {
 		r.Log.Warn("cannot get the list of namespaces requiring this secret", map[string]interface{}{
@@ -99,7 +100,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 	wasError := false
 	// Reconcile secrets in selected namespaces
 	for _, namespaceName := range targetNamespaces {
-		err = r.reconcileSecretInNamespace(imps, namespaceName, referencedSecret)
+		err = r.reconcileSecretInNamespace(imps, namespaceName, renderedPullSecret)
 
 		if err != nil {
 			r.Log.Warn("cannot reconcile secret in namespace, skipping", map[string]interface{}{

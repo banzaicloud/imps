@@ -192,13 +192,15 @@ func (r *ImagePullSecretReconciler) impsReferencingSecret(obj handler.MapObject)
 
 	var res []ctrl.Request
 	for _, imps := range impsList.Items {
-		if imps.Spec.Registry.Credentials.Name == secret.Name && imps.Spec.Registry.Credentials.Namespace == secret.Namespace {
-			res = append(res, ctrl.Request{
-				NamespacedName: types.NamespacedName{
-					Name:      imps.GetName(),
-					Namespace: imps.GetNamespace(),
-				},
-			})
+		for _, credential := range imps.Spec.Registry.Credentials {
+			if credential.Name == secret.Name && credential.Namespace == secret.Namespace {
+				res = append(res, ctrl.Request{
+					NamespacedName: types.NamespacedName{
+						Name:      imps.GetName(),
+						Namespace: imps.GetNamespace(),
+					},
+				})
+			}
 		}
 	}
 	return res

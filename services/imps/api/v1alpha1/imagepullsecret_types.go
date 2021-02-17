@@ -63,7 +63,7 @@ type TargetSecretConfig struct {
 // RegistryConfig specifies what secret to be used as the basis of the pull secets
 type RegistryConfig struct {
 	// Credentials specifies which secret to be used as the source for docker login credentials
-	Credentials NamespacedName `json:"credentials"`
+	Credentials []NamespacedName `json:"credentials"`
 }
 
 type ReconciliationStatus string

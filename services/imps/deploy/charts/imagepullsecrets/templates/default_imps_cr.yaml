@@ -19,9 +19,10 @@ spec:
     namespacesWithPods:
     {{ toYaml . | nindent 8 }}
     {{- end }}
+  {{- with .Values.defaultConfig.credentials }}
   registry:
     credentials:
-      namespace: {{ .Release.Namespace }}
-      name: {{ include "imagepullsecret-controller.fullname" . }}-pull-secret
+      {{ toYaml . | nindent 8 }}
+  {{- end }}
 
 {{- end }}

@@ -74,5 +74,5 @@ spec:
       {{- end }}
       {{ if .Values.image.pullSecrets.needed }}
       imagePullSecrets:
-        - name: backyards-pull-secret
+        - name: {{ .Values.defaultConfig.targetSecretName }}
       {{ end }}
