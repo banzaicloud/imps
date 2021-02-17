@@ -4,6 +4,7 @@ package pullsecrets
 
 import (
 	"fmt"
+	"hash/crc32"
 	"regexp"
 	"strings"
 )
@@ -21,5 +22,7 @@ func SecretNameFromURL(prefix, url string) string {
 	}
 	sanitizedName = strings.Trim(sanitizedName, "-")
 
-	return fmt.Sprintf("%s-%s-pull-secret", prefix, sanitizedName)
+	urlCRC := crc32.ChecksumIEEE([]byte(url))
+
+	return fmt.Sprintf("%s-%s-pull-secret-%08x", prefix, sanitizedName, urlCRC)
 }
