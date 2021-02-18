@@ -214,7 +214,7 @@ func (r *ImagePullSecretReconciler) anyPodMatchesSelectorInNS(ctx context.Contex
 	}
 
 	var podsInNamespace corev1.PodList
-	err := r.List(ctx, &podsInNamespace, client.InNamespace(ns.Namespace))
+	err := r.List(ctx, &podsInNamespace, client.InNamespace(ns.Name))
 	if err != nil {
 		return false, err
 	}
@@ -249,8 +249,9 @@ func (r *ImagePullSecretReconciler) reconcileSecretInNamespace(imps *v1alpha1.Im
 			Annotations:     imps.Spec.Target.Secret.Annotations,
 			OwnerReferences: []metav1.OwnerReference{imps.GetOwnerReferenceForOwnedObject()},
 		},
-		Data: referencedSecret.Data,
-		Type: referencedSecret.Type,
+		Data:       referencedSecret.Data,
+		StringData: referencedSecret.StringData,
+		Type:       referencedSecret.Type,
 	}
 
 	_, err := r.ResourceReconciler.ReconcileResource(secret, reconciler.StatePresent)
