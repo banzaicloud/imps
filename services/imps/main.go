@@ -11,7 +11,7 @@ import (
 
 	logrintegration "logur.dev/integration/logr"
 
-	"github.com/banzaicloud/backyards/internal/platform/errorhandler"
+	"github.com/banzaicloud/backyards/pkg/common/errorhandler"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
