@@ -31,7 +31,7 @@ func NewBasicAuthSecret(secretNamespace, secretName, registry, user, password st
 		return nil, err
 	}
 
-	return &corev1.Secret{
+	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
 			Namespace: secretNamespace,
@@ -40,11 +40,13 @@ func NewBasicAuthSecret(secretNamespace, secretName, registry, user, password st
 		StringData: map[string]string{
 			SecretKeyDockerConfig: string(dockerJSON),
 		},
-	}, nil
+	}
+	secret.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("Secret"))
+	return secret, nil
 }
 
 func NewECRLoginCredentialsSecret(secretNamespace, secretName, accountID, region, awsAccessKeyID, awsSecretAccessKey string) *corev1.Secret {
-	return &corev1.Secret{
+	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
 			Namespace: secretNamespace,
@@ -57,4 +59,6 @@ func NewECRLoginCredentialsSecret(secretNamespace, secretName, accountID, region
 			ECRSecretSecretKey:      awsSecretAccessKey,
 		},
 	}
+	secret.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("Secret"))
+	return secret
 }
