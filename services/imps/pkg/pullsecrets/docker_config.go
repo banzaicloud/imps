@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -169,4 +171,22 @@ func (c Config) ConfigString(ctx context.Context) ([]byte, *time.Time, error) {
 	}
 
 	return marshaledRegistryConfig, minExpiration, nil
+}
+
+func (c Config) Secret(ctx context.Context, secretNamespace, secretName string) (*corev1.Secret, *time.Time, error) {
+	dockerJSON, expires, err := c.ConfigString(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: secretNamespace,
+		},
+		Type: SecretTypeBasicAuth,
+		StringData: map[string]string{
+			SecretKeyDockerConfig: string(dockerJSON),
+		},
+	}, expires, nil
 }
