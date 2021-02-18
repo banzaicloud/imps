@@ -66,3 +66,4 @@ defaultConfig:
   targetSecretName: default-secret-name
   namespaces: {}
   namespacesWithPods: []
+  credentials: []
