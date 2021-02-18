@@ -5,7 +5,9 @@ go 1.15
 require (
 	emperror.dev/emperror v0.32.0
 	emperror.dev/errors v0.8.0
-	github.com/banzaicloud/backyards v0.0.0-00010101000000-000000000000
+	github.com/aws/aws-sdk-go-v2 v1.2.0
+	github.com/aws/aws-sdk-go-v2/service/ecr v1.1.1
+	github.com/banzaicloud/backyards v0.0.1
 	github.com/banzaicloud/backyards/pkg/platform/log v0.0.0
 	github.com/banzaicloud/operator-tools v0.16.1
 	github.com/onsi/gomega v1.10.2 // indirect
