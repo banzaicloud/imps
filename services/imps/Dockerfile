@@ -17,6 +17,8 @@ COPY ./services/imps/go.mod /workspace/services/imps/
 COPY ./services/imps/go.sum /workspace/services/imps/
 COPY ./services/sre/go.mod /workspace/services/sre/
 COPY ./services/sre/go.sum /workspace/services/sre/
+COPY ./services/xrate/go.mod /workspace/services/xrate/
+COPY ./services/xrate/go.sum /workspace/services/xrate/
 COPY ./go.mod /workspace/
 COPY ./go.sum /workspace/
 COPY ./pkg/common/go.mod /workspace/pkg/common/
