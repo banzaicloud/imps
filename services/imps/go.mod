@@ -26,8 +26,8 @@ require (
 replace (
 	github.com/banzaicloud/backyards/pkg/common => ../../pkg/common
 	github.com/banzaicloud/backyards/services/health => ../../services/health
-
 	github.com/banzaicloud/backyards/services/imps/static => ./static
 	github.com/banzaicloud/backyards/services/sre => ../../services/sre
+	github.com/banzaicloud/backyards/services/xrate => ../../services/xrate
 	k8s.io/client-go => k8s.io/client-go v0.19.2
 )
