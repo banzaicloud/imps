@@ -1,13 +1,18 @@
+//go:generate go run static/generate.go
+
 // Copyright (c) 2021 Banzai Cloud Zrt. All Rights Reserved.
 
 package main
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 
 	logrintegration "logur.dev/integration/logr"
 
-	"github.com/banzaicloud/backyards/internal/platform/errorhandler"
+	"github.com/banzaicloud/backyards/pkg/common/errorhandler"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -24,7 +29,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/banzaicloud/backyards/services/imps/api/v1alpha1"
-	"github.com/banzaicloud/backyards/services/imps/internal/cron"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -54,7 +58,7 @@ func main() {
 	var configNamespace string
 
 	pflag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
-	pflag.IntVar(&periodicReconcileInterval, "periodic-reconcile-interval", 30, "The interval in seconds in which controller reconciles are run periodically.")
+	pflag.IntVar(&periodicReconcileInterval, "periodic-reconcile-interval", 300, "The interval in seconds in which controller reconciles are run periodically.")
 	pflag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -67,6 +71,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	periodicReconcileIntervalDuration := time.Duration(periodicReconcileInterval) * time.Second
+
 	// Create logger (first thing after configuration loading)
 	logger := log.NewLogger(config.Log)
 	ctrl.SetLogger(logrintegration.New(logger))
@@ -78,7 +84,7 @@ func main() {
 		MetricsBindAddress:      metricsAddr,
 		Port:                    9443,
 		LeaderElection:          enableLeaderElection,
-		LeaderElectionID:        "733507e9.banzaicloud.io",
+		LeaderElectionID:        "73de1ad9.banzaicloud.io",
 		LeaderElectionNamespace: configNamespace,
 	})
 	if err != nil {
@@ -88,21 +94,17 @@ func main() {
 
 	impsLogger := logur.WithField(logger, "controller", "imagepullsecrets")
 	impsReconciler := &controllers.ImagePullSecretReconciler{
-		Client:       mgr.GetClient(),
-		Log:          impsLogger,
-		ErrorHandler: errorHandler,
-		Scheme:       mgr.GetScheme(),
+		Client:                    mgr.GetClient(),
+		Log:                       impsLogger,
+		ErrorHandler:              errorHandler,
+		Scheme:                    mgr.GetScheme(),
+		ResourceReconciler:        reconciler.NewReconcilerWith(mgr.GetClient(), reconciler.WithLog(logrintegration.New(impsLogger))),
+		Recorder:                  mgr.GetEventRecorderFor("imagepullsecrets-controller"),
+		PeriodicReconcileInterval: periodicReconcileIntervalDuration,
 	}
 
 	if err = impsReconciler.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "imagepullsecrets")
-		os.Exit(1)
-	}
-
-	periodicReconciler := cron.NewPeriodicReconciler(logger, mgr.GetClient(), impsReconciler)
-	err = mgr.Add(periodicReconciler.Reconcile(periodicReconcileInterval))
-	if err != nil {
-		setupLog.Error(err, "unable add a runnable to the manager")
 		os.Exit(1)
 	}
 
