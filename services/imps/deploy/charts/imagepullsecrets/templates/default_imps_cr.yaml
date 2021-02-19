@@ -1,0 +1,28 @@
+{{- if .Values.defaultConfig.enabled }}
+---
+apiVersion: images.banzaicloud.io/v1alpha1
+kind: ImagePullSecret
+metadata:
+  name: {{ include "imagepullsecret-controller.fullname" . }}-default
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "imagepullsecret-controller.labels" . | nindent 4 }}
+spec:
+  target:
+    secret:
+      name: {{ .Values.defaultConfig.targetSecretName }}
+    {{- with .Values.defaultConfig.namespaces }}
+    namespaces:
+    {{ toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.defaultConfig.namespacesWithPods }}
+    namespacesWithPods:
+    {{ toYaml . | nindent 8 }}
+    {{- end }}
+  {{- with .Values.defaultConfig.credentials }}
+  registry:
+    credentials:
+      {{ toYaml . | nindent 8 }}
+  {{- end }}
+
+{{- end }}

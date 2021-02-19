@@ -6,9 +6,7 @@ metadata:
   labels:
     {{- include "imagepullsecret-controller.labels" . | nindent 4 }}
 spec:
-{{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-{{- end }}
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
       {{- include "imagepullsecret-controller.selectorLabels" . | nindent 6 }}
@@ -30,10 +28,6 @@ spec:
       labels:
         {{- include "imagepullsecret-controller.labels" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "imagepullsecret-controller.fullname" . }}
@@ -78,3 +72,7 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{ if .Values.image.pullSecrets.needed }}
+      imagePullSecrets:
+        - name: {{ .Values.defaultConfig.targetSecretName }}
+      {{ end }}
