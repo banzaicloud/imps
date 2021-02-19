@@ -1,7 +1,7 @@
 # Copyright (c) 2019 Banzai Cloud Zrt. All Rights Reserved.
 
 # Build the manager binary
-FROM golang:1.13 as builder
+FROM golang:1.15 as builder
 
 ARG GITHUB_ACCESS_TOKEN
 
