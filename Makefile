@@ -64,9 +64,6 @@ lint-fix: ${REPO_ROOT}/bin/golangci-lint ## Run linter & fix
 	${REPO_ROOT}/bin/golangci-lint run --disable=unused -c ${REPO_ROOT}/.golangci.yml --fix
 	${REPO_ROOT}/bin/golangci-lint run -c ${REPO_ROOT}/.golangci.yml --fix
 
-${REPO_ROOT}/bin/licensei:
-	make -C ${REPO_ROOT} bin/licensei
-
 .PHONY: build
 build: generate fmt vet 	## Build the binary
 	go build  ${GOARGS} -o bin/${SERVICE_NAME} -ldflags "${LDFLAGS}" ${MAIN_PACKAGE}
@@ -146,7 +143,6 @@ license-check: bin/licensei ## Run license check
 	bin/licensei check
 	bin/licensei header
 	scripts/check_header.sh
-
 .PHONY: license-cache
 license-cache: bin/licensei ## Generate license cache
 	bin/licensei cache
