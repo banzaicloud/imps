@@ -11,6 +11,7 @@ CRD_OPTIONS ?= "crd:trivialVersions=true"
 # TODO: Use this when allowDangerousTypes feature is released to support floats
 # CRD_OPTIONS ?= "crd:trivialVersions=true,allowDangerousTypes=true"
 LICENSEI_VERSION = 0.3.1
+GOLANGCI_VERSION = 1.26.0
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -48,21 +49,25 @@ all: build
 test: ensure-tools generate fmt vet manifests 	## Run tests
 	KUBEBUILDER_ASSETS="${REPO_ROOT}/bin/kubebuilder-2.3.1/bin/" go test  ${GOARGS} ./... -coverprofile cover.out
 
-${REPO_ROOT}/bin/golangci-lint:
-	make -C ${REPO_ROOT} bin/golangci-lint
+bin/golangci-lint: bin/golangci-lint-${GOLANGCI_VERSION}
+	@ln -sf golangci-lint-${GOLANGCI_VERSION} bin/golangci-lint
+bin/golangci-lint-${GOLANGCI_VERSION}:
+	@mkdir -p bin
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b ./bin/ v${GOLANGCI_VERSION}
+	@mv bin/golangci-lint $@
 
 DISABLED_LINTERS ?= --disable=gci --disable=goimports --disable=gofumpt
 .PHONY: lint
-lint: ${REPO_ROOT}/bin/golangci-lint ## Run linter
+lint: bin/golangci-lint ## Run linter
 # "unused" linter is a memory hog, but running it separately keeps it contained (probably because of caching)
-	${REPO_ROOT}/bin/golangci-lint run --disable=unused -c ${REPO_ROOT}/.golangci.yml --timeout 2m
-	${REPO_ROOT}/bin/golangci-lint run -c ${REPO_ROOT}/.golangci.yml --timeout 2m
+	bin/golangci-lint run --disable=unused -c .golangci.yml --timeout 2m
+	bin/golangci-lint run -c .golangci.yml --timeout 2m
 
 .PHONY: lint-fix
-lint-fix: ${REPO_ROOT}/bin/golangci-lint ## Run linter & fix
+lint-fix: bin/golangci-lint ## Run linter & fix
 # "unused" linter is a memory hog, but running it separately keeps it contained (probably because of caching)
-	${REPO_ROOT}/bin/golangci-lint run --disable=unused -c ${REPO_ROOT}/.golangci.yml --fix
-	${REPO_ROOT}/bin/golangci-lint run -c ${REPO_ROOT}/.golangci.yml --fix
+	bin/golangci-lint run --disable=unused -c .golangci.yml --fix
+	bin/golangci-lint run -c .golangci.yml --fix
 
 .PHONY: build
 build: generate fmt vet 	## Build the binary
