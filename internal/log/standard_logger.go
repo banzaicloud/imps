@@ -12,18 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1
+package log
 
 import (
-	"k8s.io/apimachinery/pkg/labels"
+	"log"
+
+	"logur.dev/logur"
 )
 
-type LabelSet labels.Set
+// NewErrorStandardLogger returns a new standard logger logging on error level.
+func NewErrorStandardLogger(logger logur.Logger) *log.Logger {
+	return logur.NewErrorStandardLogger(logger, "", 0)
+}
 
-func (s LabelSet) DeepCopy() LabelSet {
-	newSet := LabelSet{}
-	for k, v := range s {
-		newSet[k] = v
-	}
-	return newSet
+// SetStandardLogger sets the global logger's output to a custom logger instance.
+func SetStandardLogger(logger logur.Logger) {
+	log.SetOutput(logur.NewLevelWriter(logger, logur.Info))
 }

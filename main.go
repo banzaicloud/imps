@@ -12,14 +12,14 @@ import (
 
 	logrintegration "logur.dev/integration/logr"
 
-	"github.com/banzaicloud/backyards/pkg/common/errorhandler"
+	"github.com/banzaicloud/imps/internal/errorhandler"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/banzaicloud/backyards/pkg/common/log"
-	"github.com/banzaicloud/backyards/services/imps/controllers"
+	"github.com/banzaicloud/imps/controllers"
+	"github.com/banzaicloud/imps/internal/log"
 
 	"os"
 	"strings"
@@ -28,7 +28,7 @@ import (
 	"logur.dev/logur"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/banzaicloud/backyards/services/imps/api/v1alpha1"
+	"github.com/banzaicloud/imps/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 

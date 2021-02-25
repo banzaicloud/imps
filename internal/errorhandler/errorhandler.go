@@ -12,18 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1
+package errorhandler
 
 import (
-	"k8s.io/apimachinery/pkg/labels"
+	"emperror.dev/emperror"
+	logurhandler "emperror.dev/handler/logur"
 )
 
-type LabelSet labels.Set
-
-func (s LabelSet) DeepCopy() LabelSet {
-	newSet := LabelSet{}
-	for k, v := range s {
-		newSet[k] = v
-	}
-	return newSet
+// New returns a new error handler.
+func New(logger logurhandler.ErrorLogger) emperror.ErrorHandler {
+	return logurhandler.WithStackTrace(logurhandler.New(logger))
 }

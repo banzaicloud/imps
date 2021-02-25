@@ -1,0 +1,48 @@
+run:
+  skip-dirs:
+    - .gen
+  skip-files:
+    - ".*zz_.*\\.go$"
+
+linters:
+  enable-all: true
+  disable:
+    - lll
+    - gochecknoinits
+    - gochecknoglobals
+    - goconst
+    - funlen
+    - gocritic
+    - godox
+    - wsl
+    - gocognit
+    - gomnd
+    - godot
+    - goerr113
+    - nestif
+    - testpackage
+    - nolintlint
+
+linters-settings:
+  golint:
+    min-confidence: 0.1
+  gocyclo:
+    min-complexity: 40
+  goimports:
+    local-prefixes: github.com/banzaicloud
+  gocritic:
+    disabled-checks:
+      - ifElseChain
+
+issues:
+  # mainly because of the operator, but we are using helm chart names
+  # as package names
+  exclude:
+    - underscore in package name
+    - should not use underscores in package names
+
+  exclude-rules:
+  # zz_ files are messing up the receiver name
+  - linters:
+      - stylecheck
+    text: "ST1016"
