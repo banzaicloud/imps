@@ -10,6 +10,7 @@ IMG ?= imagepullsecrects:latest
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 # TODO: Use this when allowDangerousTypes feature is released to support floats
 # CRD_OPTIONS ?= "crd:trivialVersions=true,allowDangerousTypes=true"
+LICENSEI_VERSION = 0.3.1
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -66,14 +67,6 @@ lint-fix: ${REPO_ROOT}/bin/golangci-lint ## Run linter & fix
 ${REPO_ROOT}/bin/licensei:
 	make -C ${REPO_ROOT} bin/licensei
 
-.PHONY: license-check
-license-check: ${REPO_ROOT}/bin/licensei ## Run license check
-	${REPO_ROOT}/bin/licensei check
-
-.PHONY: license-cache
-license-cache: ${REPO_ROOT}/bin/licensei ## Generate license cache
-	${REPO_ROOT}/bin/licensei cache
-
 .PHONY: build
 build: generate fmt vet 	## Build the binary
 	go build  ${GOARGS} -o bin/${SERVICE_NAME} -ldflags "${LDFLAGS}" ${MAIN_PACKAGE}
@@ -89,7 +82,6 @@ run: generate fmt vet manifests		## Run against the configured Kubernetes cluste
 .PHONY: ensure-tools
 ensure-tools:
 	@scripts/download-deps.sh
-  #@scripts/install_kubebuilder.sh --download-only 2.3.1
 	@scripts/install_kustomize.sh
 
 .PHONY: install
@@ -142,9 +134,27 @@ docker-build: test		## Build the docker image (to override image name please set
 docker-push:			## Push the docker image (to override image name please set IMG)
 	docker push ${IMG}
 
+bin/licensei: bin/licensei-${LICENSEI_VERSION}
+	@ln -sf licensei-${LICENSEI_VERSION} bin/licensei
+bin/licensei-${LICENSEI_VERSION}:
+	@mkdir -p bin
+	curl -sfL https://raw.githubusercontent.com/goph/licensei/master/install.sh | bash -s v${LICENSEI_VERSION}
+	@mv bin/licensei $@
+
+.PHONY: license-check
+license-check: bin/licensei ## Run license check
+	bin/licensei check
+	bin/licensei header
+	scripts/check_header.sh
+
+.PHONY: license-cache
+license-cache: bin/licensei ## Generate license cache
+	bin/licensei cache
+
 MAKEFILE_LIST=Makefile
 
 .PHONY: help
 .DEFAULT_GOAL := help
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
