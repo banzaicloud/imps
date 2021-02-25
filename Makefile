@@ -142,7 +142,6 @@ bin/licensei-${LICENSEI_VERSION}:
 license-check: bin/licensei ## Run license check
 	bin/licensei check
 	bin/licensei header
-	scripts/check_header.sh
 .PHONY: license-cache
 license-cache: bin/licensei ## Generate license cache
 	bin/licensei cache
