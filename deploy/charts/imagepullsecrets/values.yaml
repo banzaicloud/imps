@@ -3,11 +3,6 @@
 # Declare variables to be passed into your templates.
 
 clusterName: master
-prometheus:
-  apiAddresses:
-    - http://prometheus:9090
-  queryAddress: http://prometheus:9090
-  directQueryAddress: http://prometheus:9090
 
 replicas: 1
 
@@ -23,12 +18,11 @@ securityContext:
   allowPrivilegeEscalation: false
 image:
   repository: banzaicloud/imagepullsecrets
-  tag: master
+  tag: latest
   pullPolicy: IfNotPresent
-  pullSecrets:
-    needed: false
-    dockerConfig: |
-      {}
+
+imagePullSecrets: []
+
 nodeSelector: {}
 affinity: {}
 tolerations: []
