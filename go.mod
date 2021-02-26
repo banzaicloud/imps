@@ -17,13 +17,11 @@ require (
 	github.com/spf13/viper v1.6.2
 	k8s.io/api v0.19.7
 	k8s.io/apimachinery v0.19.7
-	k8s.io/client-go v12.0.0+incompatible
+	k8s.io/client-go v0.19.7
 	logur.dev/adapter/logrus v0.5.0
 	logur.dev/integration/logr v0.3.2
 	logur.dev/logur v0.17.0
 	sigs.k8s.io/controller-runtime v0.6.2
 )
-
-replace k8s.io/client-go => k8s.io/client-go v0.19.2
 
 replace github.com/banzaicloud/imps/static => ./static

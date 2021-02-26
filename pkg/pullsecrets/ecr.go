@@ -21,9 +21,9 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/ecr"
+
+	imps_ecr "github.com/banzaicloud/imps/pkg/ecr"
 )
 
 type ECRLoginCredentialsProvider struct {
@@ -48,33 +48,11 @@ func (p ECRLoginCredentialsProvider) GetURL() string {
 }
 
 func (p ECRLoginCredentialsProvider) LoginCredentials(ctx context.Context) (*LoginCredentials, *time.Time, error) {
-	client := ecr.NewFromConfig(aws.Config{
-		Region: p.Region,
-		Credentials: aws.CredentialsProviderFunc(func(context.Context) (aws.Credentials, error) {
-			return p.Credentials, nil
-		}),
-	})
-
-	// note: RegistryIds is deprecated, any account's registries can be accessed via the returned token
-	authToken, err := client.GetAuthorizationToken(ctx, &ecr.GetAuthorizationTokenInput{})
+	token, err := imps_ecr.GetAuthorizationToken(ctx, p.Region, p.Credentials)
 	if err != nil {
 		return nil, nil, err
 	}
-
-	if len(authToken.AuthorizationData) == 0 {
-		return nil, nil, errors.New("no authorization data is returned from ECR")
-	}
-
-	if len(authToken.AuthorizationData) > 1 {
-		// This should never happen according to current API specs
-		return nil, nil, errors.NewWithDetails("multiple authorization records are returned for ECR", "response", authToken)
-	}
-
-	if authToken.AuthorizationData[0].AuthorizationToken == nil {
-		return nil, nil, errors.New("no authorization data is returned from ECR - authorization token is empty")
-	}
-
-	decodedAuth, err := base64.StdEncoding.DecodeString(*authToken.AuthorizationData[0].AuthorizationToken)
+	decodedAuth, err := base64.StdEncoding.DecodeString(*token.AuthorizationToken)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -83,6 +61,6 @@ func (p ECRLoginCredentialsProvider) LoginCredentials(ctx context.Context) (*Log
 	return &LoginCredentials{
 		Username: splitAuth[0],
 		Password: splitAuth[1],
-		Auth:     *authToken.AuthorizationData[0].AuthorizationToken,
-	}, authToken.AuthorizationData[0].ExpiresAt, nil
+		Auth:     *token.AuthorizationToken,
+	}, token.ExpiresAt, nil
 }

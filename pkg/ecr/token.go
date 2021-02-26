@@ -1,0 +1,81 @@
+package ecr
+
+import (
+	"context"
+	"time"
+
+	"emperror.dev/errors"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	ecr_types "github.com/aws/aws-sdk-go-v2/service/ecr/types"
+)
+
+const (
+	// TODO: gov cloud?
+	// defaultAuthRegion: as ECR tokens do not depend on any region or accountID anymore, so let's use a default here
+	defaultAuthRegion = "us-east-1"
+	// assumedTokenValidityTime specifies how long to consider the returned token to be valid if not specified in
+	// the response
+	assumedTokenValidityTime = 20 * time.Minute
+)
+
+type Token struct {
+	Creds                 StringableCredentials
+	CurrentToken          *ecr_types.AuthorizationData
+	TokenValidityDuration time.Duration
+	LastQueriedAt         time.Time
+}
+
+func NewECRToken(ctx context.Context, creds StringableCredentials) (*Token, error) {
+	token := &Token{
+		Creds: creds,
+	}
+
+	err := token.Refresh(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
+}
+
+func (t *Token) Refresh(ctx context.Context) error {
+	client := ecr.NewFromConfig(aws.Config{
+		Region: defaultAuthRegion,
+		Credentials: aws.CredentialsProviderFunc(func(context.Context) (aws.Credentials, error) {
+			return aws.Credentials{
+				AccessKeyID:     t.Creds.AccessKeyID,
+				SecretAccessKey: t.Creds.SecretAccessKey,
+			}, nil
+		}),
+	})
+
+	// note: RegistryIds is deprecated, any account's registries can be accessed via the returned token
+	authToken, err := client.GetAuthorizationToken(ctx, &ecr.GetAuthorizationTokenInput{})
+	if err != nil {
+		return err
+	}
+
+	if len(authToken.AuthorizationData) == 0 {
+		return errors.New("no authorization data is returned from ECR")
+	}
+
+	if len(authToken.AuthorizationData) > 1 {
+		// This should never happen according to current API specs
+		return errors.NewWithDetails("multiple authorization records are returned for ECR", "response", authToken)
+	}
+
+	if authToken.AuthorizationData[0].AuthorizationToken == nil {
+		return errors.New("no authorization data is returned from ECR - authorization token is empty")
+	}
+
+	fetchedToken := authToken.AuthorizationData[0]
+	t.CurrentToken = &fetchedToken
+	if fetchedToken.ExpiresAt != nil {
+		t.TokenValidityDuration = time.Until(*fetchedToken.ExpiresAt)
+	} else {
+		t.TokenValidityDuration = assumedTokenValidityTime
+	}
+
+	return nil
+}

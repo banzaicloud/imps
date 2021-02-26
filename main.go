@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/banzaicloud/imps/pkg/ecr"
+
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 
 	logrintegration "logur.dev/integration/logr"
@@ -91,6 +93,9 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
+
+	ecrLogger := logur.WithField(logger, "controller", "ecr_token_refresh")
+	ecr.Initialize(ecrLogger)
 
 	impsLogger := logur.WithField(logger, "controller", "imagepullsecrets")
 	impsReconciler := &controllers.ImagePullSecretReconciler{
