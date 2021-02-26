@@ -17,8 +17,8 @@ podSecurityContext:
 securityContext:
   allowPrivilegeEscalation: false
 image:
-  repository: banzaicloud/imagepullsecrets
-  tag: v0.0.2 
+  repository: ghcr.io/banzaicloud/imagepullsecrets
+  tag: v0.0.3
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -56,7 +56,7 @@ log:
   # level: info # accepted values: panic, fatal, error, warn, warning, info, debug, trace
 
 defaultConfig:
-  enabled: true
+  enabled: false
   targetSecretName: default-secret-name
   namespaces: {}
   namespacesWithPods: []
