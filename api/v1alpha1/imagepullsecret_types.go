@@ -88,7 +88,10 @@ const (
 
 // ImagePullSecretStatus defines the observed state of ImagePullSecret
 type ImagePullSecretStatus struct {
-	Status ReconciliationStatus `json:"status,omitempty"`
+	Status                       ReconciliationStatus `json:"status,omitempty"`
+	LastSuccessfulReconciliation metav1.Time          `json:"lastSuccessfulReconciliation,omitempty"`
+	ValiditySeconds              int32                `json:"validitySeconds,omitempty"`
+	ManagedNamespaces            []string             `json:"managedNamespaces,omitempty"`
 }
 
 type NamespacedName struct {
@@ -105,6 +108,10 @@ type NamespacedName struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=imagepullsecrets,shortName=imps,scope=Cluster
 // +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.status",description="Represents if the object has been successfully reconciled",priority=0,format="byte"
+// +kubebuilder:printcolumn:name="Reconciled",type="date",JSONPath=".status.lastSuccessfulReconciliation",description="When the object has been successfully reconciled",priority=0,format="date"
+// +kubebuilder:printcolumn:name="Validity seconds",type="integer",JSONPath=".status.validitySeconds",description="How long the generated credential is valid for after the last reconciliation",priority=0,format="int32"
+// +kubebuilder:printcolumn:name="Secret Name",type="string",JSONPath=".spec.target.secret.name",description="Name of the secret generated",priority=0,format="byte"
+// +kubebuilder:printcolumn:name="Namespaces",type="string",JSONPath=".status.managedNamespaces",description="Name of the namespaces the secret is generated in",priority=0,format="byte"
 type ImagePullSecret struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

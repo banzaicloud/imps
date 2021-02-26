@@ -41,8 +41,27 @@ var (
 	}
 )
 
-func (r *ImagePullSecretReconciler) setStatus(ctx context.Context, imps *v1alpha1.ImagePullSecret, status v1alpha1.ReconciliationStatus) {
-	imps.Status = v1alpha1.ImagePullSecretStatus{Status: status}
+func (r *ImagePullSecretReconciler) setFailedStatus(ctx context.Context, imps *v1alpha1.ImagePullSecret) {
+	imps.Status.Status = v1alpha1.ReconciliationFailed
+	err := r.Status().Update(ctx, imps)
+	if err != nil {
+		r.Log.Error("cannot update status field", map[string]interface{}{
+			"error": err,
+			"imps":  imps,
+		})
+	}
+}
+
+func (r *ImagePullSecretReconciler) setReadyStatus(ctx context.Context, imps *v1alpha1.ImagePullSecret, targetNamespaces StringSet, pullSecretExpires *time.Time) {
+	imps.Status.LastSuccessfulReconciliation = metav1.Time{Time: time.Now()}
+	imps.Status.Status = v1alpha1.ReconciliationReady
+	imps.Status.ManagedNamespaces = targetNamespaces
+	if pullSecretExpires != nil {
+		imps.Status.ValiditySeconds = int32(time.Until(*pullSecretExpires) / time.Second)
+	} else {
+		imps.Status.ValiditySeconds = 0
+	}
+
 	err := r.Status().Update(ctx, imps)
 	if err != nil {
 		r.Log.Error("cannot update status field", map[string]interface{}{
@@ -75,28 +94,28 @@ func (r *ImagePullSecretReconciler) reconcile(req ctrl.Request) (ctrl.Result, er
 		return result, errors.WithStack(err)
 	}
 
-	pullSecret, _, err := config.Secret(ctx, "", imps.Spec.Target.Secret.Name)
+	pullSecret, pullSecretExpires, err := config.Secret(ctx, "", imps.Spec.Target.Secret.Name)
 	if err != nil {
-		r.setStatus(ctx, &imps, v1alpha1.ReconciliationFailed)
+		r.setFailedStatus(ctx, &imps)
 		r.Recorder.Event(&imps, "Warning", "SourceCredentialsAccessError",
 			fmt.Sprintf("Cannot render registry credentials: %s", err.Error()))
 		return result, errors.WrapWithDetails(err, "cannot get referenced secret", "imps_name", imps.Name)
 	}
 
-	result, err = r.reconcileImagePullSecret(ctx, &imps, pullSecret)
+	result, targetNamespaces, err := r.reconcileImagePullSecret(ctx, &imps, pullSecret)
 	if err != nil {
-		r.setStatus(ctx, &imps, v1alpha1.ReconciliationFailed)
+		r.setFailedStatus(ctx, &imps)
 	} else {
 		if initialRun {
 			r.Recorder.Event(&imps, "Normal", "Reconciled", "Successfully reconciled selected secrets")
 		}
-		r.setStatus(ctx, &imps, v1alpha1.ReconciliationReady)
+		r.setReadyStatus(ctx, &imps, targetNamespaces, pullSecretExpires)
 	}
 	logger.Info("Reconciling ImagePullSecret finished")
 	return result, err
 }
 
-func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context, imps *v1alpha1.ImagePullSecret, renderedPullSecret *corev1.Secret) (ctrl.Result, error) {
+func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context, imps *v1alpha1.ImagePullSecret, renderedPullSecret *corev1.Secret) (ctrl.Result, StringSet, error) {
 	targetNamespaces, err := r.namespacesRequiringSecret(ctx, imps)
 	if err != nil {
 		r.Log.Warn("cannot get the list of namespaces requiring this secret", map[string]interface{}{
@@ -104,7 +123,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 			"imps":  imps,
 		})
 		r.Recorder.Event(imps, "Warning", "SecretReconciliationError", fmt.Sprintf("Cannot list namespaces requiring the secret: %s", err.Error()))
-		return requeueObject, err
+		return requeueObject, nil, err
 	}
 
 	// Let's continue in case of errors the initial secret creation as in case of ECR the tokens will expire, thus
@@ -131,7 +150,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 	}
 
 	if wasError {
-		return requeueObject, errors.New("some secrets failed to reconcile")
+		return requeueObject, nil, errors.New("some secrets failed to reconcile")
 	}
 
 	var ownedSecrets corev1.SecretList
@@ -144,7 +163,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 			"imps":  imps,
 		})
 		r.Recorder.Event(imps, "Warning", "SecretReconciliationError", fmt.Sprintf("Cannot enumerate secrets: %s", err.Error()))
-		return requeueObject, err
+		return requeueObject, nil, err
 	}
 
 	// Purge secrets that should not be there based on the selectors
@@ -175,12 +194,12 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 					"secret": existingSecret,
 				})
 				r.Recorder.Event(imps, "Warning", "SecretDeletionError", fmt.Sprintf("Cannot remove secret %s/%s", existingSecret.Namespace, existingSecret.Name))
-				return requeueObject, err
+				return requeueObject, nil, err
 			}
 		}
 	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{}, targetNamespaces, nil
 }
 
 func (r *ImagePullSecretReconciler) namespacesRequiringSecret(ctx context.Context, imps *v1alpha1.ImagePullSecret) (StringSet, error) {
