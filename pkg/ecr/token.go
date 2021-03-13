@@ -25,9 +25,6 @@ import (
 )
 
 const (
-	// TODO: gov cloud?
-	// defaultAuthRegion: as ECR tokens do not depend on any region or accountID anymore, so let's use a default here
-	defaultAuthRegion = "us-east-1"
 	// assumedTokenValidityTime specifies how long to consider the returned token to be valid if not specified in
 	// the response
 	assumedTokenValidityTime = 20 * time.Minute
@@ -55,7 +52,7 @@ func NewECRToken(ctx context.Context, creds StringableCredentials) (*Token, erro
 
 func (t *Token) Refresh(ctx context.Context) error {
 	client := ecr.NewFromConfig(aws.Config{
-		Region: defaultAuthRegion,
+		Region: t.Creds.Region,
 		Credentials: aws.CredentialsProviderFunc(func(context.Context) (aws.Credentials, error) {
 			return aws.Credentials{
 				AccessKeyID:     t.Creds.AccessKeyID,
