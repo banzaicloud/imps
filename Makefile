@@ -26,7 +26,7 @@ MAIN_PACKAGE ?= main.go
 
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
-VERSION ?= 0.1.1
+VERSION ?= 0.1.2
 LDFLAGS += -X github.com/banzaicloud/imps/internal/version.commitHash=${COMMIT_HASH}
 LDFLAGS += -X github.com/banzaicloud/imps/internal/version.buildDate=${BUILD_DATE}
 LDFLAGS += -X github.com/banzaicloud/imps/internal/version.version=${VERSION}

@@ -33,7 +33,8 @@ spec:
       serviceAccountName: {{ include "imagepullsecret-controller.fullname" . }}
       containers:
         - name: controller
-          args:
+          command:
+            - /manager
             - --metrics-addr=:8080
             - --enable-leader-election
             - --config-namespace={{ .Release.Namespace }}
