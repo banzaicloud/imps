@@ -18,7 +18,7 @@ securityContext:
   allowPrivilegeEscalation: false
 image:
   repository: ghcr.io/banzaicloud/imagepullsecrets
-  tag: v0.1.0
+  tag: v0.1.1
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -54,6 +54,11 @@ podDisruptionBudget:
 log:
   {}
   # level: info # accepted values: panic, fatal, error, warn, warning, info, debug, trace
+
+# additional environment variables to be injected into the container
+env:
+  {}
+
 
 defaultConfig:
   enabled: false
