@@ -83,6 +83,7 @@ kind: Secret
 metadata:
   name: ecr-pull-secret
   namespace: registry-access
+type: banzaicloud.io/aws-ecr-login-config  
 stringData:
   accessKeyID: XXX # AWS AccessKeyID
   secretKey: XXXX # AWS SecretAccessKey
