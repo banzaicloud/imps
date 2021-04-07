@@ -52,10 +52,7 @@ type RefresherReconciler struct {
 	TargetSecret              types.NamespacedName
 }
 
-// +kubebuilder:rbac:groups=images.banzaicloud.io,resources=imagepullsecrets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=images.banzaicloud.io,resources=imagepullsecrets/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups="",resources=events,verbs=create;update;patch
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
 func (r *RefresherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	result, err := r.reconcile(req)
 	result, err = cron.EnsurePeriodicReconcile(r.PeriodicReconcileInterval, result, err)
