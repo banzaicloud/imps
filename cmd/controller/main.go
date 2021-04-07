@@ -1,5 +1,3 @@
-//go:generate go run static/generate.go
-
 // Copyright (c) 2021 Banzai Cloud Zrt. All Rights Reserved.
 
 package main

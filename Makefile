@@ -22,7 +22,7 @@ endif
 
 SERVICE_NAME=$(shell basename ${CURDIR} )
 REPO_ROOT=$(shell git rev-parse --show-toplevel)
-MAIN_PACKAGE ?= main.go
+MAIN_PACKAGE ?= ./cmd/controller/
 
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
@@ -73,7 +73,7 @@ lint-fix: bin/golangci-lint ## Run linter & fix
 build: generate fmt vet binary	## Build the binary
 
 .PHONY: build-refresher
-build: generate fmt vet binary-refresher	## Build the binary
+build-refresher: generate fmt vet binary-refresher	## Build the refresher binary
 
 .PHONY: binary
 binary:					## Build the binary without executing any code generators
@@ -124,7 +124,7 @@ vet:	## Run go vet against code
 
 .PHONY: go-generate
 go-generate: generate-generate
-	go generate ./...
+	go run static/generate.go
 
 .PHONY: generate-generate
 generate-generate:

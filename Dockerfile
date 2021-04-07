@@ -17,7 +17,7 @@ RUN go mod download
 COPY ./ /workspace/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager ./cmd/controller/
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
@@ -27,6 +27,6 @@ RUN apk add --update --no-cache ca-certificates
 
 WORKDIR /
 COPY --from=builder /workspace/manager .
-USER nonroot:nonroot
+USER nobody:nobody
 
-ENTRYPOINT ["/bin/sh", "-c", "sleep 3600"]
+ENTRYPOINT ["/manager"]
