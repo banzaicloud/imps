@@ -56,8 +56,10 @@ func main() {
 	Configure(viper.GetViper(), pflag.CommandLine)
 	var periodicReconcileInterval int
 	var targetSecretString string
+	var metricsAddr string
 
 	sourceSecretStrings := pflag.StringArray("source-secret", nil, "Source secrets specified in <namespace>.<secret-name> format")
+	pflag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	pflag.IntVar(&periodicReconcileInterval, "periodic-reconcile-interval", 300, "The interval in seconds in which controller reconciles are run periodically.")
 	pflag.StringVar(&targetSecretString, "target-secret", "", "Target secret specifies what secret to create containing the image pull secrets. Format: namespace.secret-name")
 	pflag.Parse()
@@ -97,6 +99,7 @@ func main() {
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
+		MetricsBindAddress:      metricsAddr,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
