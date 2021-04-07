@@ -73,6 +73,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	pflag.Parse()
+
 	periodicReconcileIntervalDuration := time.Duration(periodicReconcileInterval) * time.Second
 
 	// Create logger (first thing after configuration loading)

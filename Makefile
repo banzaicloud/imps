@@ -70,16 +70,26 @@ lint-fix: bin/golangci-lint ## Run linter & fix
 	bin/golangci-lint run -c .golangci.yml --fix
 
 .PHONY: build
-build: generate fmt vet 	## Build the binary
-	go build  ${GOARGS} -o bin/${SERVICE_NAME} -ldflags "${LDFLAGS}" ${MAIN_PACKAGE}
+build: generate fmt vet binary	## Build the binary
+
+.PHONY: build-refresher
+build: generate fmt vet binary-refresher	## Build the binary
 
 .PHONY: binary
 binary:					## Build the binary without executing any code generators
 	go build  ${GOARGS} -o bin/${SERVICE_NAME} -ldflags "${LDFLAGS}" ${MAIN_PACKAGE}
 
+.PHONY: binary-refresher
+binary-refresher:	## Build the refresher binary without executing any code generators
+	go build  ${GOARGS} -o bin/${SERVICE_NAME}-refresher -ldflags "${LDFLAGS}" ./cmd/refresher
+
 .PHONY: run
 run: generate fmt vet manifests		## Run against the configured Kubernetes cluster in ~/.kube/config
 	go run  ${GOARGS} ${MAIN_PACKAGE}
+
+.PHONY: static
+static:
+
 
 .PHONY: ensure-tools
 ensure-tools:
