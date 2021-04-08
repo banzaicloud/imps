@@ -113,7 +113,7 @@ func (t *TokenManager) GetAuthorizationToken(ctx context.Context, key Stringable
 			return ecr_types.AuthorizationData{}, err
 		}
 		t.ManagedTokens[key.String()] = token
-		if token.CurrentToken != nil {
+		if token.CurrentToken == nil {
 			return ecr_types.AuthorizationData{}, errors.New("no token is available")
 		}
 		t.Logger.Info("token refreshed", map[string]interface{}{

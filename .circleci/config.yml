@@ -76,7 +76,7 @@ jobs:
 
       - run:
           name: Run build
-          command: make build
+          command: make build build-refresher
           working_directory: << parameters.working_directory >>
 
       - run:
@@ -232,4 +232,73 @@ workflows:
               only: /^v?[0-9]+\.[0-9]+\.[0-9]+(?:-(?:dev|rc|alpha|beta)\.[0-9]+)?$/
             branches:
               ignore: /.*/
+
+      - docker/build:
+          name: Docker build (imps-refresher)
+          executor: docker/machine-dlc
+          image: banzaicloud/imagepullsecrets-refresher
+          tag: ${CIRCLE_BRANCH//\//_}
+          dockerfile: Dockerfile-refresher
+          filters:
+            branches:
+              ignore: main
+
+      - docker/custom-publish:
+          name: Docker build refresher image
+          executor: docker/machine-dlc
+          context: github
+          login:
+            - docker/login
+            - docker/ghcr-login
+          dockerfile: Dockerfile-refresher
+          push:
+            - docker/push:
+                registry: docker.io
+                image: banzaicloud/imagepullsecrets-refresher
+                tag: main
+            - docker/push:
+                registry: ghcr.io
+                image: banzaicloud/imagepullsecrets-refresher
+                tag: main
+          filters:
+            branches:
+              only: main
+
+      - docker/custom-publish:
+          name: Publish tagged & latest image
+          executor: docker/machine-dlc
+          context: github
+          login:
+            - docker/login
+            - docker/ghcr-login
+          dockerfile: Dockerfile-refresher
+          push:
+            - docker/push:
+                registry: docker.io
+                image: banzaicloud/imagepullsecrets-refresher
+                tag: ${CIRCLE_TAG//\//_}
+            - docker/push:
+                registry: ghcr.io
+                image: banzaicloud/imagepullsecrets-refresher
+                tag: ${CIRCLE_TAG//\//_}
+            - docker/conditional-push:
+                registry: docker.io
+                image: banzaicloud/imagepullsecrets-refresher
+                tag: latest
+                condition-steps:
+                  - docker/version-check:
+                      version: ${CIRCLE_TAG//\//_}
+            - docker/conditional-push:
+                registry: ghcr.io
+                image: banzaicloud/imagepullsecrets-refresher
+                tag: latest
+                condition-steps:
+                  - docker/version-check:
+                      version: ${CIRCLE_TAG//\//_}
+          filters:
+            tags:
+              only: /^v?[0-9]+\.[0-9]+\.[0-9]+(?:-(?:dev|rc|alpha|beta)\.[0-9]+)?$/
+            branches:
+              ignore: /.*/
+
 

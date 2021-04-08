@@ -22,7 +22,7 @@ endif
 
 SERVICE_NAME=$(shell basename ${CURDIR} )
 REPO_ROOT=$(shell git rev-parse --show-toplevel)
-MAIN_PACKAGE ?= main.go
+MAIN_PACKAGE ?= ./cmd/controller/
 
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
@@ -70,16 +70,26 @@ lint-fix: bin/golangci-lint ## Run linter & fix
 	bin/golangci-lint run -c .golangci.yml --fix
 
 .PHONY: build
-build: generate fmt vet 	## Build the binary
-	go build  ${GOARGS} -o bin/${SERVICE_NAME} -ldflags "${LDFLAGS}" ${MAIN_PACKAGE}
+build: generate fmt vet binary	## Build the binary
+
+.PHONY: build-refresher
+build-refresher: generate fmt vet binary-refresher	## Build the refresher binary
 
 .PHONY: binary
 binary:					## Build the binary without executing any code generators
 	go build  ${GOARGS} -o bin/${SERVICE_NAME} -ldflags "${LDFLAGS}" ${MAIN_PACKAGE}
 
+.PHONY: binary-refresher
+binary-refresher:	## Build the refresher binary without executing any code generators
+	go build  ${GOARGS} -o bin/${SERVICE_NAME}-refresher -ldflags "${LDFLAGS}" ./cmd/refresher
+
 .PHONY: run
 run: generate fmt vet manifests		## Run against the configured Kubernetes cluster in ~/.kube/config
 	go run  ${GOARGS} ${MAIN_PACKAGE}
+
+.PHONY: static
+static:
+
 
 .PHONY: ensure-tools
 ensure-tools:
@@ -114,7 +124,7 @@ vet:	## Run go vet against code
 
 .PHONY: go-generate
 go-generate: generate-generate
-	go generate ./...
+	go run static/generate.go
 
 .PHONY: generate-generate
 generate-generate:

@@ -1,5 +1,3 @@
-//go:generate go run static/generate.go
-
 // Copyright (c) 2021 Banzai Cloud Zrt. All Rights Reserved.
 
 package main
@@ -72,6 +70,8 @@ func main() {
 		setupLog.Error(err, "failed to unmarshal configuration")
 		os.Exit(1)
 	}
+
+	pflag.Parse()
 
 	periodicReconcileIntervalDuration := time.Duration(periodicReconcileInterval) * time.Second
 

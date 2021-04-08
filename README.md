@@ -3,7 +3,47 @@
 IMPS (IMagePullSecrets) controller is a Kubernetes operator that manages pull secrets based label or annotation 
 selectors. It natively supports ECR and standard docker configuration secrets.
 
-## Motivation
+IMPS provides two modes of operation:
+- IMPS controller: a full fledged solution for managing and refreshing secrets in multiple namespaces
+- IMPS token refresher: a small utility that allows to refresh ECR tokens inside one namespace
+
+## Using the token refresher
+
+The token refresher Docker images are available in the `ghcr.io/banzaicloud/imagepullsecrets-refresher` Docker Registry.
+
+The refresher uses the same kind of secrets as we will discuss in regard the Controller, however it can only output pull secrets into a single namespace.
+
+For example a Pod running the refresher with the following arguments:
+
+```shell
+/manager
+    --target-secret=default.ecr-image-pull-secrets
+    --source-secret=default.ecr-credentials-1
+    --source-secret=default.ecr-credentials-2
+```
+
+will ensure that the AWS credentials stored inside the `default` namespaces `ecr-credentails-1` and `ecr-credentials-2` secrets are used to fetch
+ECR tokens for the set registries, and the image pull secret will be put inside the `ecr-image-pull-secrets` secret inside the `default` namespace.
+
+The format of AWS credentials needed by the refresher is the following:
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ecr-credentials-1
+  namespace: default
+stringData:
+  accessKeyID: XXX # AWS AccessKeyID
+  secretKey: XXXX # AWS SecretAccessKey
+  region: us-east-1 # ECR repository's region to use the token for
+  accountID: 123456789  # ECR repository's account ID to use the token for
+```
+
+*Note*: the refresher needs list and watch Cluster permissions for secrets, and read access to the srouce secrets, and created/delete/update for the target secret.
+
+If there's interest we can provide a helm chart for the refresher too, please create an issue if you are interested.
+
+## Motivation for the Controller
 
 The solution is geared towards Istio or any solution relying on sidecar injection. The issue is
 that the sidecar injection can happen in any namespace the user starts a `Deployment` or `StatefulSet`
