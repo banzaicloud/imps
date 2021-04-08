@@ -98,8 +98,8 @@ func main() {
 	ctrl.SetLogger(logrintegration.New(logger))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme: scheme,
-		MetricsBindAddress:      metricsAddr,
+		Scheme:             scheme,
+		MetricsBindAddress: metricsAddr,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
