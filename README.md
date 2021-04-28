@@ -32,12 +32,15 @@ kind: Secret
 metadata:
   name: ecr-credentials-1
   namespace: default
+type: banzaicloud.io/aws-ecr-login-config
 stringData:
   accessKeyID: XXX # AWS AccessKeyID
   secretKey: XXXX # AWS SecretAccessKey
   region: us-east-1 # ECR repository's region to use the token for
   accountID: 123456789  # ECR repository's account ID to use the token for
 ```
+
+The secret type should be `banzaicloud.io/aws-ecr-login-config`. 
 
 *Note*: the refresher needs list and watch Cluster permissions for secrets, and read access to the srouce secrets, and created/delete/update for the target secret.
 
