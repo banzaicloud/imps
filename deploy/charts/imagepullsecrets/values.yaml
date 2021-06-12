@@ -66,3 +66,9 @@ defaultConfig:
   namespaces: {}
   namespacesWithPods: []
   credentials: []
+
+defaultSecret:
+  enabled: false
+  stringData: {}
+  type: ""
+
