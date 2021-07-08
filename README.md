@@ -37,12 +37,12 @@ stringData:
   accessKeyID: XXX # AWS AccessKeyID
   secretKey: XXXX # AWS SecretAccessKey
   region: us-east-1 # ECR repository's region to use the token for
-  accountID: 123456789  # ECR repository's account ID to use the token for
+  accountID: "123456789"  # ECR repository's account ID to use the token for
 ```
 
 The secret type should be `banzaicloud.io/aws-ecr-login-config`. 
 
-*Note*: the refresher needs list and watch Cluster permissions for secrets, and read access to the srouce secrets, and created/delete/update for the target secret.
+*Note*: the refresher needs list and watch Cluster permissions for secrets, and read access to the source secrets, and created/delete/update for the target secret.
 
 If there's interest we can provide a helm chart for the refresher too, please create an issue if you are interested.
 
@@ -131,8 +131,10 @@ stringData:
   accessKeyID: XXX # AWS AccessKeyID
   secretKey: XXXX # AWS SecretAccessKey
   region: us-east-1 # ECR repository's region to use the token for
-  accountID: 123456789  # ECR repository's account ID to use the token for
+  accountID: "123456789"  # ECR repository's account ID to use the token for
 ```
+
+*Note*: Make sure `accountID` is given as string and not bare numbers, Kubernetes Secret's `stringData` field will only accept strings. 
 
 ### Using IMPS to provision secrets in selected namespaces
 
