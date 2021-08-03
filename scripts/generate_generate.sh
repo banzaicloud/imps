@@ -162,7 +162,7 @@ go fmt $ROOT_DIR/static/generate.go > /dev/null
 
 echo "module github.com/banzaicloud/imps$RELATIVE_ROOT_DIR/static
 
-go 1.15
+go 1.16
 "
 
 ) > $ROOT_DIR/static/go.mod

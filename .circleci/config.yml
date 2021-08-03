@@ -23,7 +23,7 @@ jobs:
         type: boolean
     resource_class: large
     docker:
-      - image: circleci/golang:1.15
+      - image: circleci/golang:1.16
         environment:
           GOFLAGS: -mod=readonly
           GOPRIVATE: github.com/banzaicloud
