@@ -124,7 +124,9 @@ vet:	## Run go vet against code
 
 .PHONY: go-generate
 go-generate: generate-generate
+	go get github.com/shurcooL/vfsgen
 	go run static/generate.go
+	go mod tidy
 
 .PHONY: generate-generate
 generate-generate:
