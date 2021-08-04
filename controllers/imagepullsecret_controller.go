@@ -20,9 +20,9 @@ import (
 
 	"emperror.dev/emperror"
 	"logur.dev/logur"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -42,7 +42,6 @@ type ImagePullSecretReconciler struct {
 	client.Client
 	Log          logur.Logger
 	ErrorHandler emperror.ErrorHandler
-	Scheme       *runtime.Scheme
 	Recorder     record.EventRecorder
 
 	ResourceReconciler        reconciler.ResourceReconciler
@@ -53,8 +52,8 @@ type ImagePullSecretReconciler struct {
 // +kubebuilder:rbac:groups=images.banzaicloud.io,resources=imagepullsecrets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;update;patch
-func (r *ImagePullSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	result, err := r.reconcile(req)
+func (r *ImagePullSecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	result, err := r.reconcile(ctx, req)
 	result, err = cron.EnsurePeriodicReconcile(r.PeriodicReconcileInterval, result, err)
 	if err != nil {
 		r.ErrorHandler.Handle(err)
@@ -67,25 +66,25 @@ func (r *ImagePullSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&v1alpha1.ImagePullSecret{}, ctrlBuilder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Watches(
 			&source.Kind{Type: &corev1.Namespace{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: handler.ToRequestsFunc(r.impsMatchingNamespace),
-			}).
+			handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
+				return r.impsMatchingNamespace(object)
+			})).
 		Watches(
 			&source.Kind{Type: &corev1.Pod{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: handler.ToRequestsFunc(r.impsMatchingPod),
-			}).
+			handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
+				return r.impsMatchingPod(object)
+			})).
 		Watches(
 			&source.Kind{Type: &corev1.Secret{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: handler.ToRequestsFunc(r.impsReferencingSecret),
-			})
+			handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
+				return r.impsReferencingSecret(object)
+			}))
 
 	return builder.Complete(r)
 }
 
-func (r *ImagePullSecretReconciler) impsMatchingNamespace(obj handler.MapObject) []ctrl.Request {
-	ns, ok := obj.Object.(*corev1.Namespace)
+func (r *ImagePullSecretReconciler) impsMatchingNamespace(obj client.Object) []ctrl.Request {
+	ns, ok := obj.(*corev1.Namespace)
 	if !ok {
 		r.Log.Info("object is not a Namespace")
 		return []ctrl.Request{}
@@ -112,7 +111,7 @@ func (r *ImagePullSecretReconciler) impsMatchingNamespace(obj handler.MapObject)
 		}
 
 		if matches {
-			res = append(res, ctrl.Request{
+			res = append(res, reconcile.Request{
 				NamespacedName: types.NamespacedName{
 					Name:      imps.GetName(),
 					Namespace: imps.GetNamespace(),
@@ -123,8 +122,8 @@ func (r *ImagePullSecretReconciler) impsMatchingNamespace(obj handler.MapObject)
 	return res
 }
 
-func (r *ImagePullSecretReconciler) impsMatchingPod(obj handler.MapObject) []ctrl.Request {
-	pod, ok := obj.Object.(*corev1.Pod)
+func (r *ImagePullSecretReconciler) impsMatchingPod(obj client.Object) []ctrl.Request {
+	pod, ok := obj.(*corev1.Pod)
 	if !ok {
 		r.Log.Info("object is not a Pod or Namespace")
 		return []ctrl.Request{}
@@ -188,8 +187,8 @@ func (r *ImagePullSecretReconciler) impsMatchingPod(obj handler.MapObject) []ctr
 	return res
 }
 
-func (r *ImagePullSecretReconciler) impsReferencingSecret(obj handler.MapObject) []ctrl.Request {
-	secret, ok := obj.Object.(*corev1.Secret)
+func (r *ImagePullSecretReconciler) impsReferencingSecret(obj client.Object) []ctrl.Request {
+	secret, ok := obj.(*corev1.Secret)
 	if !ok {
 		r.Log.Info("object is not a Secret")
 		return []ctrl.Request{}

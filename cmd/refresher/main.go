@@ -118,7 +118,6 @@ func main() {
 		Client:                    mgr.GetClient(),
 		Log:                       refresherLogger,
 		ErrorHandler:              errorHandler,
-		Scheme:                    mgr.GetScheme(),
 		ResourceReconciler:        reconciler.NewReconcilerWith(mgr.GetClient(), reconciler.WithLog(logrintegration.New(refresherLogger))),
 		PeriodicReconcileInterval: periodicReconcileIntervalDuration,
 		SourceSecrets:             sourceSecrets,

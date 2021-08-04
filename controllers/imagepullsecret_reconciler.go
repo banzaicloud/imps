@@ -71,8 +71,7 @@ func (r *ImagePullSecretReconciler) setReadyStatus(ctx context.Context, imps *v1
 	}
 }
 
-func (r *ImagePullSecretReconciler) reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *ImagePullSecretReconciler) reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := logur.WithField(r.Log, "imagepullsecret", req.NamespacedName)
 	result := ctrl.Result{}
 

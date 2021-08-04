@@ -4,6 +4,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/banzaicloud/imps/pkg/ecr"
@@ -20,9 +22,6 @@ import (
 
 	"github.com/banzaicloud/imps/controllers"
 	"github.com/banzaicloud/imps/internal/log"
-
-	"os"
-	"strings"
 
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"logur.dev/logur"
@@ -102,7 +101,6 @@ func main() {
 		Client:                    mgr.GetClient(),
 		Log:                       impsLogger,
 		ErrorHandler:              errorHandler,
-		Scheme:                    mgr.GetScheme(),
 		ResourceReconciler:        reconciler.NewReconcilerWith(mgr.GetClient(), reconciler.WithLog(logrintegration.New(impsLogger))),
 		Recorder:                  mgr.GetEventRecorderFor("imagepullsecrets-controller"),
 		PeriodicReconcileInterval: periodicReconcileIntervalDuration,
