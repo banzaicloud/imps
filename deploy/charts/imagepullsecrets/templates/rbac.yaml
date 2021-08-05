@@ -50,6 +50,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role 
 metadata:
   name: {{ include "imagepullsecret-controller.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "imagepullsecret-controller.labels" . | nindent 4 }}
 rules:
@@ -83,6 +84,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "imagepullsecret-controller.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "imagepullsecret-controller.labels" . | nindent 4 }}
 roleRef:
