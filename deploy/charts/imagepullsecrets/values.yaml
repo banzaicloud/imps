@@ -9,7 +9,7 @@ replicas: 1
 istio:
   revision: ""
 
-podAnnotations: []
+podAnnotations: {}
 
 podSecurityContext:
   runAsUser: 65534
@@ -18,7 +18,7 @@ securityContext:
   allowPrivilegeEscalation: false
 image:
   repository: ghcr.io/banzaicloud/imagepullsecrets
-  tag: v0.2.5
+  tag: v0.2.6
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
