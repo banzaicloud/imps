@@ -4,7 +4,6 @@ apiVersion: images.banzaicloud.io/v1alpha1
 kind: ImagePullSecret
 metadata:
   name: {{ include "imagepullsecret-controller.fullname" . }}-default
-  namespace: {{ .Release.Namespace }}
   labels:
   {{- include "imagepullsecret-controller.labels" . | nindent 4 }}
 spec:

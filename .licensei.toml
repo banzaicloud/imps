@@ -13,4 +13,5 @@ ignored = [
   "github.com/ghodss/yaml",
   "sigs.k8s.io/yaml", # Forked from above
   "gopkg.in/fsnotify.v1",
+  "gomodules.xyz/jsonpatch/v2", # Apache2
 ]
