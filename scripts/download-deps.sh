@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-controller_gen_version=0.3.0
+controller_gen_version=0.6.2
 kuttl_version=0.8.0
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
