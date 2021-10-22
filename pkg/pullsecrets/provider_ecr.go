@@ -19,7 +19,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 
@@ -47,20 +46,26 @@ func (p ECRLoginCredentialsProvider) GetURL() string {
 	return fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", p.AccountID, p.Region)
 }
 
-func (p ECRLoginCredentialsProvider) LoginCredentials(ctx context.Context) (*LoginCredentials, *time.Time, error) {
+func (p ECRLoginCredentialsProvider) LoginCredentials(ctx context.Context) ([]LoginCredentialsWithDetails, error) {
 	token, err := imps_ecr.GetAuthorizationToken(ctx, p.Region, p.Credentials)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	decodedAuth, err := base64.StdEncoding.DecodeString(*token.AuthorizationToken)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	splitAuth := strings.SplitN(string(decodedAuth), ":", 2)
-	return &LoginCredentials{
-		Username: splitAuth[0],
-		Password: splitAuth[1],
-		Auth:     *token.AuthorizationToken,
-	}, token.ExpiresAt, nil
+	return []LoginCredentialsWithDetails{
+		{
+			LoginCredentials: LoginCredentials{
+				Username: splitAuth[0],
+				Password: splitAuth[1],
+				Auth:     *token.AuthorizationToken,
+			},
+			URL:        p.GetURL(),
+			Expiration: token.ExpiresAt,
+		},
+	}, nil
 }

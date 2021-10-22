@@ -16,32 +16,27 @@ package pullsecrets
 
 import (
 	"context"
-	"encoding/base64"
-	"time"
 )
 
 type StaticLoginCredentialProvider struct {
-	Username string
-	Password string
-	URL      string
+	Credentials []LoginCredentialsWithDetails
 }
 
-func NewStaticLoginCredentialProvider(url, username, password string) StaticLoginCredentialProvider {
-	return StaticLoginCredentialProvider{
-		Username: username,
-		Password: password,
-		URL:      url,
+func NewStaticLoginCredentialProvider(parsedDockerConfig DockerRegistryConfig) StaticLoginCredentialProvider {
+	p := StaticLoginCredentialProvider{
+		Credentials: []LoginCredentialsWithDetails{},
 	}
+	for url, config := range parsedDockerConfig.Auths {
+		p.Credentials = append(p.Credentials, LoginCredentialsWithDetails{
+			LoginCredentials: config,
+			URL:              url,
+			Expiration:       nil,
+		})
+	}
+
+	return p
 }
 
-func (p StaticLoginCredentialProvider) GetURL() string {
-	return p.URL
-}
-
-func (p StaticLoginCredentialProvider) LoginCredentials(ctx context.Context) (*LoginCredentials, *time.Time, error) {
-	return &LoginCredentials{
-		Username: p.Username,
-		Password: p.Password,
-		Auth:     base64.StdEncoding.EncodeToString([]byte(p.Username + ":" + p.Password)),
-	}, nil, nil
+func (p StaticLoginCredentialProvider) LoginCredentials(ctx context.Context) ([]LoginCredentialsWithDetails, error) {
+	return p.Credentials, nil
 }

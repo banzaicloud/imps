@@ -41,8 +41,9 @@ var (
 	}
 )
 
-func (r *ImagePullSecretReconciler) setFailedStatus(ctx context.Context, imps *v1alpha1.ImagePullSecret) {
+func (r *ImagePullSecretReconciler) setFailedStatus(ctx context.Context, imps *v1alpha1.ImagePullSecret, failureError error) {
 	imps.Status.Status = v1alpha1.ReconciliationFailed
+	imps.Status.Reason = failureError.Error()
 	err := r.Status().Update(ctx, imps)
 	if err != nil {
 		r.Log.Error("cannot update status field", map[string]interface{}{
@@ -55,6 +56,7 @@ func (r *ImagePullSecretReconciler) setFailedStatus(ctx context.Context, imps *v
 func (r *ImagePullSecretReconciler) setReadyStatus(ctx context.Context, imps *v1alpha1.ImagePullSecret, targetNamespaces StringSet, pullSecretExpires *time.Time) {
 	imps.Status.LastSuccessfulReconciliation = metav1.Time{Time: time.Now()}
 	imps.Status.Status = v1alpha1.ReconciliationReady
+	imps.Status.Reason = ""
 	imps.Status.ManagedNamespaces = targetNamespaces
 	if pullSecretExpires != nil {
 		imps.Status.ValiditySeconds = int32(time.Until(*pullSecretExpires) / time.Second)
@@ -88,27 +90,35 @@ func (r *ImagePullSecretReconciler) reconcile(ctx context.Context, req ctrl.Requ
 
 	initialRun := imps.Status.Status == ""
 
-	config, err := pullsecrets.NewConfigFromSecrets(ctx, r, imps.Spec.Registry.CredentialsAsNamespacedNameList())
+	config := pullsecrets.NewConfigFromSecrets(ctx, r, imps.Spec.Registry.CredentialsAsNamespacedNameList())
+
+	resultingConfig, err := config.ResultingDockerConfig(ctx)
+	// Note: this only happens if the json serializer fails
 	if err != nil {
-		return result, errors.WithStack(err)
+		r.setFailedStatus(ctx, &imps, err)
+		r.Recorder.Event(&imps, "Warning", "SourceCredentialsError",
+			fmt.Sprintf("Cannot marshal resulting docker configuration: %s", err.Error()))
 	}
 
-	pullSecret, pullSecretExpires, err := config.Secret(ctx, "", imps.Spec.Target.Secret.Name)
-	if err != nil {
-		r.setFailedStatus(ctx, &imps)
-		r.Recorder.Event(&imps, "Warning", "SourceCredentialsAccessError",
-			fmt.Sprintf("Cannot render registry credentials: %s", err.Error()))
-		return result, errors.WrapWithDetails(err, "cannot get referenced secret", "imps_name", imps.Name)
-	}
+	imps.Status.SourceSecretStatus = resultingConfig.AsStatus()
+	pullSecret := resultingConfig.AsSecret("", imps.Spec.Target.Secret.Name)
 
 	result, targetNamespaces, err := r.reconcileImagePullSecret(ctx, &imps, pullSecret)
 	if err != nil {
-		r.setFailedStatus(ctx, &imps)
+		r.setFailedStatus(ctx, &imps, err)
+		r.Recorder.Event(&imps, "Warning", "ReconciliationFailed",
+			fmt.Sprintf("Cannot reconcile configuration: %s", err.Error()))
+	}
+
+	if err := resultingConfig.AsError(); err != nil {
+		r.setFailedStatus(ctx, &imps, err)
+		r.Recorder.Event(&imps, "Warning", "SourceCredentialsError",
+			fmt.Sprintf("Source cerdentials failed to process: %v", resultingConfig.FailedSecrets()))
 	} else {
 		if initialRun {
 			r.Recorder.Event(&imps, "Normal", "Reconciled", "Successfully reconciled selected secrets")
 		}
-		r.setReadyStatus(ctx, &imps, targetNamespaces, pullSecretExpires)
+		r.setReadyStatus(ctx, &imps, targetNamespaces, resultingConfig.Expiration)
 	}
 	logger.Info("Reconciling ImagePullSecret finished")
 	return result, err
