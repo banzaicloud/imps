@@ -19,6 +19,7 @@ WORKDIR /workspace/
 
 COPY ./go.mod /workspace/
 COPY ./go.sum /workspace/
+COPY ./api/ /workspace/api/
 RUN go mod download
 
 COPY ./ /workspace/
