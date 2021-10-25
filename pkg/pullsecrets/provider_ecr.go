@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/banzaicloud/imps/api/common"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -59,7 +60,7 @@ func (p ECRLoginCredentialsProvider) LoginCredentials(ctx context.Context) ([]Lo
 	splitAuth := strings.SplitN(string(decodedAuth), ":", 2)
 	return []LoginCredentialsWithDetails{
 		{
-			LoginCredentials: LoginCredentials{
+			LoginCredentials: common.LoginCredentials{
 				Username: splitAuth[0],
 				Password: splitAuth[1],
 				Auth:     *token.AuthorizationToken,

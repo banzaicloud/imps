@@ -16,13 +16,14 @@ package pullsecrets
 
 import (
 	"context"
+	"github.com/banzaicloud/imps/api/common"
 )
 
 type StaticLoginCredentialProvider struct {
 	Credentials []LoginCredentialsWithDetails
 }
 
-func NewStaticLoginCredentialProvider(parsedDockerConfig DockerRegistryConfig) StaticLoginCredentialProvider {
+func NewStaticLoginCredentialProvider(parsedDockerConfig common.DockerRegistryConfig) StaticLoginCredentialProvider {
 	p := StaticLoginCredentialProvider{
 		Credentials: []LoginCredentialsWithDetails{},
 	}
