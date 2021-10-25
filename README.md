@@ -264,7 +264,7 @@ Events:
   Warning  SourceCredentialsError  22m (x3 over 23m)  imagepullsecrets-controller  Source cerdentials failed to process: [default.test2]
   ```
 
-The `Status.Status` field indicates that the reconciliation has failed. The `Status.Reason` shows the failure case (`some source secrets failed to render`). The `Status.Source Secret STatus` indicates what failed during the reconciliation:
+The `Status.Status` field indicates that the reconciliation has failed. The `Status.Reason` shows the failure case (`some source secrets failed to render`). The `Status.Source Secret Status` indicates what failed during the reconciliation:
 ```
  Source Secret Status:
     default.test:    Ok
