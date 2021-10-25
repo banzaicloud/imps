@@ -17,8 +17,6 @@ package v1alpha1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-
-	"github.com/banzaicloud/operator-tools/pkg/utils"
 )
 
 func (i *ImagePullSecret) GetOwnerReferenceForOwnedObject() metav1.OwnerReference {
@@ -27,7 +25,7 @@ func (i *ImagePullSecret) GetOwnerReferenceForOwnedObject() metav1.OwnerReferenc
 		Kind:       i.Kind,
 		Name:       i.Name,
 		UID:        i.UID,
-		Controller: utils.BoolPointer(false),
+		Controller: BoolPointer(false),
 	}
 }
 
@@ -41,4 +39,8 @@ func (r RegistryConfig) CredentialsAsNamespacedNameList() []types.NamespacedName
 	}
 
 	return list
+}
+
+func BoolPointer(b bool) *bool {
+	return &b
 }
