@@ -26,7 +26,7 @@ MAIN_PACKAGE ?= ./cmd/controller/
 
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
-VERSION ?= 0.3.1
+VERSION ?= 0.3.2
 LDFLAGS += -X github.com/banzaicloud/imps/internal/version.commitHash=${COMMIT_HASH}
 LDFLAGS += -X github.com/banzaicloud/imps/internal/version.buildDate=${BUILD_DATE}
 LDFLAGS += -X github.com/banzaicloud/imps/internal/version.version=${VERSION}
@@ -134,7 +134,7 @@ generate-generate:
 
 # Generate code
 .PHONY: generate
-generate: go-generate ensure-tools manifests generate-helm-crds		## Generate manifests, CRDs, static assets
+generate: go-generate ensure-tools manifests generate-helm-crds fmt		## Generate manifests, CRDs, static assets
 
 .PHONY: generate-helm-crds
 generate-helm-crds: ensure-tools	## Update the CRDs in our helm charts

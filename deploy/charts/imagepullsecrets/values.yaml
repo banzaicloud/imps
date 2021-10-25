@@ -18,7 +18,7 @@ securityContext:
   allowPrivilegeEscalation: false
 image:
   repository: ghcr.io/banzaicloud/imagepullsecrets
-  tag: v0.3.1
+  tag: v0.3.2
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
