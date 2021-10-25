@@ -1,4 +1,4 @@
-// Copyright © 2021 Banzai Cloud
+// Copyright © 2021 Cisco Systems
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,15 +14,21 @@
 
 package pullsecrets
 
-// nolint:gosec
-const (
-	SecretTypeBasicAuth      = "kubernetes.io/dockerconfigjson"
-	SecretTypeECRCredentials = "banzaicloud.io/aws-ecr-login-config"
+import "context"
 
-	SecretKeyDockerConfig = ".dockerconfigjson"
+/* ErroredCredentialProvider can be used to store a setup error into the config object
+   so that at least the providers that are working correctly gets reconciled.
+*/
+type ErroredCredentialProvider struct {
+	Error error
+}
 
-	ECRSecretRegion         = "region"
-	ECRSecretAccountID      = "accountID"
-	ECRSecretKeyAccessKeyID = "accessKeyID"
-	ECRSecretSecretKey      = "secretKey"
-)
+func NewErroredCredentialProvider(err error) ErroredCredentialProvider {
+	return ErroredCredentialProvider{
+		Error: err,
+	}
+}
+
+func (p ErroredCredentialProvider) LoginCredentials(ctx context.Context) ([]LoginCredentialsWithDetails, error) {
+	return nil, p.Error
+}

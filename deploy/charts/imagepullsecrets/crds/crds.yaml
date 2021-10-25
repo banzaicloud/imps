@@ -344,6 +344,12 @@ spec:
                 items:
                   type: string
                 type: array
+              reason:
+                type: string
+              sourceSecretStatus:
+                additionalProperties:
+                  type: string
+                type: object
               status:
                 type: string
               validitySeconds:

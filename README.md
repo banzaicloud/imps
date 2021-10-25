@@ -1,6 +1,6 @@
 # IMPS
 
-IMPS (IMagePullSecrets) controller is a Kubernetes operator that manages pull secrets based label or annotation 
+IMPS (IMagePullSecrets) controller is a Kubernetes operator that manages pull secrets based label or annotation
 selectors. It natively supports ECR and standard docker configuration secrets.
 
 IMPS provides two modes of operation:
@@ -40,7 +40,7 @@ stringData:
   accountID: "123456789"  # ECR repository's account ID to use the token for
 ```
 
-The secret type should be `banzaicloud.io/aws-ecr-login-config`. 
+The secret type should be `banzaicloud.io/aws-ecr-login-config`.
 
 *Note*: the refresher needs list and watch Cluster permissions for secrets, and read access to the source secrets, and created/delete/update for the target secret.
 
@@ -54,12 +54,12 @@ that the sidecar injection can happen in any namespace the user starts a `Deploy
 have access to that registry.
 
 ImagePullSecrets can be specified at many places, like inside a `ServiceAccount`, however the sidecar injector should not
-change the `Pod`'s service account. What it can do, is to add a new `Secret` reference inside the `Pod`'s 
+change the `Pod`'s service account. What it can do, is to add a new `Secret` reference inside the `Pod`'s
 `imagePullSecrets` list. Unfortunately you cannot specify a namespace field in that list, meaning that the `Secret`
 needs to reside in the same `Namespace` as the `Pod`.
 
-As we did not want to implement this feature inside our sidecar injector, we came up with the concept of IMPS. 
-For example the following `CustomResource` instructs IMPS to create a secret called `istio-pull-secret` inside each 
+As we did not want to implement this feature inside our sidecar injector, we came up with the concept of IMPS.
+For example the following `CustomResource` instructs IMPS to create a secret called `istio-pull-secret` inside each
 `Namespace` with the annotation of `sidecar.istio.io/inject=true` or if any Pod inside a namespace has the same
 annotation:
 
@@ -94,13 +94,13 @@ secret will be injected automatically.
 
 ## Installation
 
-Helm chart's source is available in `deploy/imagepullsecrets`. 
+Helm chart's source is available in `deploy/imagepullsecrets`.
 
 The helm chart can also be downloaded from the `banzaicloud-stable` helm repository:
 
 ```shell
 helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com
-helm install imps banzaicloud-stable/imagepullsecrets 
+helm install imps banzaicloud-stable/imagepullsecrets
 ```
 
 ## Features
@@ -126,7 +126,7 @@ kind: Secret
 metadata:
   name: ecr-pull-secret
   namespace: registry-access
-type: banzaicloud.io/aws-ecr-login-config  
+type: banzaicloud.io/aws-ecr-login-config
 stringData:
   accessKeyID: XXX # AWS AccessKeyID
   secretKey: XXXX # AWS SecretAccessKey
@@ -134,7 +134,7 @@ stringData:
   accountID: "123456789"  # ECR repository's account ID to use the token for
 ```
 
-*Note*: Make sure `accountID` is given as string and not bare numbers, Kubernetes Secret's `stringData` field will only accept strings. 
+*Note*: Make sure `accountID` is given as string and not bare numbers, Kubernetes Secret's `stringData` field will only accept strings.
 
 ### Using IMPS to provision secrets in selected namespaces
 
@@ -164,6 +164,20 @@ spec:
     secret:
       name: istio-pull-secret
 ```
+
+This example CR instructs the controller to:
+- load the `registry--https-index.docker.io-v1-pull-secret-5cbe024b` secret from the `registry-access` namespace
+- load the `registry--999653XXXXX.dkr.ecr.eu-central-1.amazonaws.com-pull-secret-5e3481fc` ECR credential-based secret from the `registry-access` namespace
+  - Given that this is an ECR typed secret, it will call the AWS API to obtain a login token an generate the resulting docker authentication config
+- merges all of the docker authentication resulting from the previous steps
+- writes the resulting configuration into the `istio-pull-secret` in the following namespaces:
+  - `backyards-registry-access`
+  - `backyards-system`
+  - `backyards-canary`
+  - `cert-manager`
+  - `istio-system`
+
+If the ECR credentials are to expire the controller will automatically execute the previous steps again to ensure that the tokens are still valid.
 
 ### Rule evaulation logic
 
@@ -215,6 +229,49 @@ This CR instructs IMPS to provision `istio-pull-secret` if **any** of the follow
 - The namespace's name is listed in the names part OR
 - A pod exists inside the namespace that has an annotation of `sidecar.istio.io/inject=true` OR
 - A pod exists inside the namespace that has a label with key `istio.io/rev`
+
+## Troubleshooting
+
+In case there is an issue with the controller the imps CR shows the reason of the issue. For example:
+
+```bash
+# kubectl get imps
+NAME                                       STATE    RECONCILED   VALIDITY SECONDS   SECRET NAME           NAMESPACES
+imps-imagepullsecrets-controller-default   Failed   21m          43161              default-secret-name   ["default"]
+```
+
+The `Failed` string indicates that something is wrong when creating the target secrets. To check the details, please describe the given IMPS CR:
+```bash
+# kubectl describe imps imps-imagepullsecrets-controller-default
+Name:         imps-imagepullsecrets-controller-default
+Namespace:
+...
+Status:
+  Last Successful Reconciliation:  2021-10-25T11:39:18Z
+  Managed Namespaces:
+    default
+  Reason:  some source secrets failed to render
+  Source Secret Status:
+    default.test:    Ok
+    default.test2:   operation error ECR: GetAuthorizationToken, https response error StatusCode: 400, RequestID: fa6b9762-522d-4aee-bb6d-69280ed22ae7, api error UnrecognizedClientException: The security token included in the request is invalid.
+  Status:            Failed
+  Validity Seconds:  43161
+Events:
+  Type     Reason                  Age                From                         Message
+  ----     ------                  ----               ----                         -------
+  Warning  SourceCredentialsError  30m (x2 over 30m)  imagepullsecrets-controller  some source secrets failed to render
+  Warning  SourceCredentialsError  27m (x2 over 27m)  imagepullsecrets-controller  Source cerdentials failed to process: some source secrets failed to render
+  Warning  SourceCredentialsError  22m (x3 over 23m)  imagepullsecrets-controller  Source cerdentials failed to process: [default.test2]
+  ```
+
+The `Status.Status` field indicates that the reconciliation has failed. The `Status.Reason` shows the failure case (`some source secrets failed to render`). The `Status.Source Secret Status` indicates what failed during the reconciliation:
+```
+ Source Secret Status:
+    default.test:    Ok
+    default.test2:   operation error ECR: GetAuthorizationToken, https response error StatusCode: 400, RequestID: fa6b9762-522d-4aee-bb6d-69280ed22ae7, api error UnrecognizedClientException: The security token included in the request is invalid.
+```
+
+As it is visible here the `default` namespace's `test2` source credential has failed.
 
 ## Similar projects
 

@@ -16,9 +16,8 @@ package pullsecrets
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
-	"strings"
+	"fmt"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -47,9 +46,14 @@ func NewDockerRegistryConfig() DockerRegistryConfig {
 	}
 }
 
+type LoginCredentialsWithDetails struct {
+	LoginCredentials
+	Expiration *time.Time
+	URL        string
+}
+
 type LoginCredentialProvider interface {
-	LoginCredentials(context.Context) (*LoginCredentials, *time.Time, error)
-	GetURL() string
+	LoginCredentials(context.Context) ([]LoginCredentialsWithDetails, error)
 }
 
 type Config struct {
@@ -62,136 +66,126 @@ func NewConfig() *Config {
 	}
 }
 
-func NewConfigFromSecrets(ctx context.Context, c client.Client, refs []types.NamespacedName) (*Config, error) {
+func NewConfigFromSecrets(ctx context.Context, c client.Client, refs []types.NamespacedName) *Config {
 	var secret corev1.Secret
 	config := NewConfig()
 
 	for _, secretRef := range refs {
+		secretName := fmt.Sprintf("%s.%s", secretRef.Namespace, secretRef.Name)
 		err := c.Get(ctx, client.ObjectKey{
 			Namespace: secretRef.Namespace,
 			Name:      secretRef.Name,
 		}, &secret)
+
 		if err != nil {
-			return nil, err
+			config.Registries[secretName] = NewErroredCredentialProvider(err)
+			continue
 		}
 
 		switch secret.Type {
 		case SecretTypeBasicAuth:
 			dockerConfig, found := secret.Data[SecretKeyDockerConfig]
 			if !found {
-				return nil, errors.NewWithDetails("no docker configuration found in secret", "secret", secret.ObjectMeta)
+				config.Registries[secretName] = NewErroredCredentialProvider(
+					errors.NewWithDetails("no docker configuration found in secret", "secret", secret.ObjectMeta))
+				continue
 			}
-			err = config.AddRegistriesFromDockerConfig(dockerConfig)
-			if err != nil {
-				return nil, err
-			}
+			config.Registries[secretName] = config.StaticProviderFromDockerConfig(dockerConfig)
 		case SecretTypeECRCredentials:
-			err = config.AddECRFromSecret(secret.Data)
-			if err != nil {
-				return nil, err
-			}
+			config.Registries[secretName] = config.ECRProviderFromSecret(secret.Data)
 		default:
-			return nil, errors.NewWithDetails("unknown secret type", "type", secret.Type, "secret", secret.ObjectMeta)
+			config.Registries[secretName] = NewErroredCredentialProvider(
+				errors.NewWithDetails("unknown secret type", "type", secret.Type, "secret", secret.ObjectMeta))
 		}
 	}
-	return config, nil
+	return config
 }
 
-func (c *Config) AddRegistryWithUsernamePassword(url, username, password string) {
-	c.Registries[url] = NewStaticLoginCredentialProvider(url, username, password)
-}
-
-func (c *Config) AddRegistriesFromDockerConfig(data []byte) error {
+func (c *Config) StaticProviderFromDockerConfig(data []byte) LoginCredentialProvider {
 	var dockerConfig DockerRegistryConfig
 	err := json.Unmarshal(data, &dockerConfig)
 	if err != nil {
-		return err
+		return NewErroredCredentialProvider(err)
 	}
 
-	for url, registry := range dockerConfig.Auths {
-		decodedAuth, err := base64.StdEncoding.DecodeString(registry.Auth)
-		if err != nil {
-			return err
-		}
-
-		splitAuth := strings.SplitN(string(decodedAuth), ":", 2)
-
-		c.AddRegistryWithUsernamePassword(url, splitAuth[0], splitAuth[1])
-	}
-	return nil
+	return NewStaticLoginCredentialProvider(dockerConfig)
 }
 
 func getFieldFromMap(data map[string][]byte, key string) (string, error) {
 	value, found := data[key]
 	if !found {
-		return "", errors.NewWithDetails("no such key", "key", key)
+		return "", fmt.Errorf("no such key: %s", key)
 	}
 
 	return string(value), nil
 }
 
-func (c *Config) AddECRFromSecret(data map[string][]byte) error {
+func (c *Config) ECRProviderFromSecret(data map[string][]byte) LoginCredentialProvider {
 	accountID, err := getFieldFromMap(data, ECRSecretAccountID)
 	if err != nil {
-		return err
+		return NewErroredCredentialProvider(err)
 	}
 
 	region, err := getFieldFromMap(data, ECRSecretRegion)
 	if err != nil {
-		return err
+		return NewErroredCredentialProvider(err)
 	}
 
 	accKeyID, err := getFieldFromMap(data, ECRSecretKeyAccessKeyID)
 	if err != nil {
-		return err
+		return NewErroredCredentialProvider(err)
 	}
 
 	secretKey, err := getFieldFromMap(data, ECRSecretSecretKey)
 	if err != nil {
-		return err
+		return NewErroredCredentialProvider(err)
 	}
 
-	c.AddECR(accountID, region, accKeyID, secretKey)
-	return nil
+	return NewECRLoginCredentialsProvider(accountID, region, accKeyID, secretKey)
 }
 
-func (c Config) AddECR(accountID, region, accessKeyID, secretKey string) {
-	provider := NewECRLoginCredentialsProvider(accountID, region, accessKeyID, secretKey)
-	c.Registries[provider.GetURL()] = provider
+type ResultingDockerConfig struct {
+	ErrorsPerSecret
+	ConfigContents []byte
+	Expiration     *time.Time
 }
 
-func (c Config) ConfigString(ctx context.Context) ([]byte, *time.Time, error) {
+func (c Config) ResultingDockerConfig(ctx context.Context) (*ResultingDockerConfig, error) {
 	finalRegistryConfig := NewDockerRegistryConfig()
 	var minExpiration *time.Time = nil
+	secretErrors := NewErrorsPerSecret()
 
-	for url, provider := range c.Registries {
-		creds, expiration, err := provider.LoginCredentials(ctx)
+	for secret, provider := range c.Registries {
+		secretErrors.AddSecret(secret)
+		credentials, err := provider.LoginCredentials(ctx)
 		if err != nil {
-			return nil, nil, err
+			secretErrors.SetSecretError(secret, err)
+			continue
 		}
 
-		if expiration != nil {
-			if minExpiration == nil || (*expiration).Before(*minExpiration) {
-				minExpiration = expiration
+		for _, credential := range credentials {
+			if credential.Expiration != nil {
+				if minExpiration == nil || (credential.Expiration).Before(*minExpiration) {
+					minExpiration = credential.Expiration
+				}
 			}
+			finalRegistryConfig.Auths[credential.URL] = credential.LoginCredentials
 		}
-		finalRegistryConfig.Auths[url] = *creds
 	}
 
 	marshaledRegistryConfig, err := json.Marshal(finalRegistryConfig)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "cannot encode docker configuration into a JSON")
+		return nil, errors.Wrap(err, "cannot encode docker configuration into a JSON")
 	}
 
-	return marshaledRegistryConfig, minExpiration, nil
+	return &ResultingDockerConfig{
+		ErrorsPerSecret: secretErrors,
+		ConfigContents:  marshaledRegistryConfig,
+		Expiration:      minExpiration,
+	}, nil
 }
 
-func (c Config) Secret(ctx context.Context, secretNamespace, secretName string) (*corev1.Secret, *time.Time, error) {
-	dockerJSON, expires, err := c.ConfigString(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-
+func (c ResultingDockerConfig) AsSecret(secretNamespace, secretName string) *corev1.Secret {
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
@@ -199,7 +193,7 @@ func (c Config) Secret(ctx context.Context, secretNamespace, secretName string) 
 		},
 		Type: SecretTypeBasicAuth,
 		StringData: map[string]string{
-			SecretKeyDockerConfig: string(dockerJSON),
+			SecretKeyDockerConfig: string(c.ConfigContents),
 		},
-	}, expires, nil
+	}
 }

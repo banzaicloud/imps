@@ -115,23 +115,33 @@ func (r *RefresherReconciler) reconcile(ctx context.Context, req ctrl.Request) (
 		return result, nil
 	}
 
-	config, err := pullsecrets.NewConfigFromSecrets(ctx, r, r.SourceSecrets)
+	config := pullsecrets.NewConfigFromSecrets(ctx, r, r.SourceSecrets)
+	resultingConfig, err := config.ResultingDockerConfig(ctx)
 	if err != nil {
 		return result, errors.WithStack(err)
 	}
 
-	pullSecret, pullSecretExpires, err := config.Secret(ctx, r.TargetSecret.Namespace, r.TargetSecret.Name)
-	if err != nil {
-		return result, errors.WrapWithDetails(err, "cannot get referenced secret")
-	}
+	pullSecret := resultingConfig.AsSecret(r.TargetSecret.Namespace, r.TargetSecret.Name)
 
 	_, err = r.ResourceReconciler.ReconcileResource(pullSecret, reconciler.StatePresent)
 	if err != nil {
 		return result, err
 	}
 
+	if err := resultingConfig.AsError(); err != nil {
+		for secret, status := range resultingConfig.AsStatus() {
+			if status != pullsecrets.SourceSecretStatus {
+				logger.Warn("secret failed to render", map[string]interface{}{
+					"source_secret": secret,
+					"reason":        status,
+				})
+			}
+		}
+		return result, err
+	}
+
 	logger.Info("successfully reconciled secret", map[string]interface{}{
-		"expiration": pullSecretExpires,
+		"expiration": resultingConfig.Expiration,
 	})
 
 	return result, nil

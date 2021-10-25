@@ -89,9 +89,11 @@ const (
 // ImagePullSecretStatus defines the observed state of ImagePullSecret
 type ImagePullSecretStatus struct {
 	Status                       ReconciliationStatus `json:"status,omitempty"`
+	Reason                       string               `json:"reason,omitempty"`
 	LastSuccessfulReconciliation metav1.Time          `json:"lastSuccessfulReconciliation,omitempty"`
 	ValiditySeconds              int32                `json:"validitySeconds,omitempty"`
 	ManagedNamespaces            []string             `json:"managedNamespaces,omitempty"`
+	SourceSecretStatus           map[string]string    `json:"sourceSecretStatus,omitempty"`
 }
 
 type NamespacedName struct {
