@@ -68,5 +68,5 @@ func (e *ErrorsPerSecret) AsError() error {
 		return nil
 	}
 
-	return errors.NewWithDetails("some source secrets failed", "failed_secrets", invalidSecrets)
+	return errors.NewWithDetails("some source secrets failed to render", "failed_secrets", invalidSecrets)
 }
