@@ -54,7 +54,7 @@ func (r *ImagePullSecretReconciler) setFailedStatus(ctx context.Context, imps *v
 }
 
 func (r *ImagePullSecretReconciler) setReadyStatus(ctx context.Context, imps *v1alpha1.ImagePullSecret, targetNamespaces StringSet, pullSecretExpires *time.Time) {
-	imps.Status.LastSuccessfulReconciliation = metav1.Time{Time: time.Now()}
+	imps.Status.LastSuccessfulReconciliation = &metav1.Time{Time: time.Now()}
 	imps.Status.Status = v1alpha1.ReconciliationReady
 	imps.Status.Reason = ""
 	imps.Status.ManagedNamespaces = targetNamespaces
