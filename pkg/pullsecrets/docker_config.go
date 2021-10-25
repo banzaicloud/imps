@@ -114,7 +114,7 @@ func (c *Config) StaticProviderFromDockerConfig(data []byte) LoginCredentialProv
 func getFieldFromMap(data map[string][]byte, key string) (string, error) {
 	value, found := data[key]
 	if !found {
-		return "", errors.NewWithDetails("no such key", "key", key)
+		return "", fmt.Errorf("no such key: %s", key)
 	}
 
 	return string(value), nil
