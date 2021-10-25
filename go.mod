@@ -8,7 +8,6 @@ require (
 	emperror.dev/handler/logur v0.5.0
 	github.com/aws/aws-sdk-go-v2 v1.2.0
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.1.1
-	github.com/banzaicloud/imps/api v0.3.3
 	github.com/banzaicloud/operator-tools v0.24.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/pflag v1.0.5
@@ -23,6 +22,5 @@ require (
 )
 
 replace (
-	github.com/banzaicloud/imps/api => ./api
 	github.com/banzaicloud/imps/static => ./static
 )
