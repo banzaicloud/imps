@@ -20,27 +20,23 @@ const (
 	SourceSecretStatus = "Ok"
 )
 
-type ErrorsPerSecret struct {
-	Errors map[string]error
-}
+type ErrorsPerSecret map[string]error
 
 func NewErrorsPerSecret() ErrorsPerSecret {
-	return ErrorsPerSecret{
-		Errors: map[string]error{},
-	}
+	return ErrorsPerSecret{}
 }
 
-func (e *ErrorsPerSecret) AddSecret(name string) {
-	e.Errors[name] = nil
+func (e ErrorsPerSecret) AddSecret(name string) {
+	e[name] = nil
 }
 
-func (e *ErrorsPerSecret) SetSecretError(name string, err error) {
-	e.Errors[name] = err
+func (e ErrorsPerSecret) SetSecretError(name string, err error) {
+	e[name] = err
 }
 
-func (e *ErrorsPerSecret) AsStatus() map[string]string {
+func (e ErrorsPerSecret) AsStatus() map[string]string {
 	status := map[string]string{}
-	for secret, err := range e.Errors {
+	for secret, err := range e {
 		if err == nil {
 			status[secret] = SourceSecretStatus
 		} else {
@@ -50,10 +46,10 @@ func (e *ErrorsPerSecret) AsStatus() map[string]string {
 	return status
 }
 
-func (e *ErrorsPerSecret) FailedSecrets() []string {
+func (e ErrorsPerSecret) FailedSecrets() []string {
 	invalidSecrets := []string{}
 
-	for secret, err := range e.Errors {
+	for secret, err := range e {
 		if err != nil {
 			invalidSecrets = append(invalidSecrets, secret)
 		}
