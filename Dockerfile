@@ -1,6 +1,6 @@
 # Copyright (c) 2019 Banzai Cloud Zrt. All Rights Reserved.
 ARG FROM_IMAGE=scratch
-ARG GO_VERSION=1.16
+ARG GO_VERSION=1.17
 
 # Build the manager binary
 FROM golang:${GO_VERSION}-alpine3.14 as builder
