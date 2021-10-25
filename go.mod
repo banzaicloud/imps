@@ -21,6 +21,4 @@ require (
 	sigs.k8s.io/controller-runtime v0.9.5
 )
 
-replace (
-	github.com/banzaicloud/imps/static => ./static
-)
+replace github.com/banzaicloud/imps/static => ./static
