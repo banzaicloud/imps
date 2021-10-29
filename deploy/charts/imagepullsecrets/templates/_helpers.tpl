@@ -43,7 +43,6 @@ Create chart name and version as used by the chart label.
 {{- define "imagepullsecret-controller.labels" }}
 app: {{ include "imagepullsecret-controller.fullname" . }}
 app.kubernetes.io/name: {{ include "imagepullsecret-controller.name" . }}
-backyards.banzaicloud.io/cluster-name: {{ required ".clusterName must be specified" .Values.clusterName }}
 helm.sh/chart: {{ include "imagepullsecret.chart" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 app.kubernetes.io/instance: {{ .Release.Name }}
@@ -57,19 +56,3 @@ app.kubernetes.io/name: {{ include "imagepullsecret-controller.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
-
-{{/*
-
-  Prometheus built-ins
-
-*/}}
-{{- define "prometheus.metrics.federate" -}}
-- replacement: 'yes'
-  targetLabel: 'backyards_federate'
-{{- end }}
-{{- define "prometheus.metrics.default-metrics" -}}
-- sourceLabels: [__metrics_path__]
-  targetLabel: metrics_path
-- targetLabel: cluster
-  replacement: "{{ .Values.clusterName }}"
-{{- end }}
