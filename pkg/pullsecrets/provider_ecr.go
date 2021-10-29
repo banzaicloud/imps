@@ -18,8 +18,9 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/banzaicloud/imps/api/common"
 	"strings"
+
+	"github.com/banzaicloud/imps/api/common"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 
