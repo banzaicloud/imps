@@ -91,5 +91,4 @@ require (
 
 replace (
 	github.com/banzaicloud/imps/api => ./api
-	github.com/banzaicloud/imps/static => ./static
 )
