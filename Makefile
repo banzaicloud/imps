@@ -87,10 +87,6 @@ binary-refresher:	## Build the refresher binary without executing any code gener
 run: generate fmt vet manifests		## Run against the configured Kubernetes cluster in ~/.kube/config
 	go run  ${GOARGS} ${MAIN_PACKAGE}
 
-.PHONY: static
-static:
-
-
 .PHONY: ensure-tools
 ensure-tools:
 	@scripts/download-deps.sh
@@ -117,24 +113,16 @@ manifests: ensure-tools
 .PHONY: fmt
 fmt:	## Run go fmt against code
 	go fmt ./...
+	cd deploy/charts; go fmt ./...
 
 .PHONY: vet
 vet:	## Run go vet against code
 	go vet ./...
-
-.PHONY: go-generate
-go-generate: generate-generate
-	go get github.com/shurcooL/vfsgen
-	go run static/generate.go
-	go mod tidy
-
-.PHONY: generate-generate
-generate-generate:
-	@${REPO_ROOT}/scripts/generate_generate.sh .
+	cd deploy/charts; go vet ./...
 
 # Generate code
 .PHONY: generate
-generate: go-generate ensure-tools manifests generate-helm-crds fmt		## Generate manifests, CRDs, static assets
+generate: ensure-tools manifests generate-helm-crds fmt		## Generate manifests, CRDs
 
 .PHONY: generate-helm-crds
 generate-helm-crds: ensure-tools	## Update the CRDs in our helm charts
