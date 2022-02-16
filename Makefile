@@ -26,7 +26,7 @@ MAIN_PACKAGE ?= ./cmd/controller/
 
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
-VERSION ?= 0.3.5
+VERSION ?=
 LDFLAGS += -X github.com/banzaicloud/imps/internal/version.commitHash=${COMMIT_HASH}
 LDFLAGS += -X github.com/banzaicloud/imps/internal/version.buildDate=${BUILD_DATE}
 LDFLAGS += -X github.com/banzaicloud/imps/internal/version.version=${VERSION}
@@ -114,11 +114,13 @@ manifests: ensure-tools
 fmt:	## Run go fmt against code
 	go fmt ./...
 	cd deploy/charts; go fmt ./...
+	cd api; go fmt ./...
 
 .PHONY: vet
 vet:	## Run go vet against code
 	go vet ./...
 	cd deploy/charts; go vet ./...
+	cd api; go vet ./...
 
 # Generate code
 .PHONY: generate

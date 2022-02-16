@@ -7,6 +7,8 @@ IMPS provides two modes of operation:
 - IMPS controller: a full fledged solution for managing and refreshing secrets in multiple namespaces
 - IMPS token refresher: a small utility that allows to refresh ECR tokens inside one namespace
 
+For list of changes please consult the [Changelog](CHANGELOG.md).
+
 ## Using the token refresher
 
 The token refresher Docker images are available in the `ghcr.io/banzaicloud/imagepullsecrets-refresher` Docker Registry.
