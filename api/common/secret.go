@@ -27,7 +27,7 @@ import (
 // nolint:gosec
 const (
 	SecretTypeBasicAuth      = "kubernetes.io/dockerconfigjson"
-	SecretTypeECRCredentials = "banzaicloud.io/aws-ecr-login-config"
+	SecretTypeECRCredentials = "cisco.com/aws-ecr-login-config"
 
 	SecretKeyDockerConfig = ".dockerconfigjson"
 

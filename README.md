@@ -32,7 +32,7 @@ kind: Secret
 metadata:
   name: ecr-credentials-1
   namespace: default
-type: banzaicloud.io/aws-ecr-login-config
+type: cisco.com/aws-ecr-login-config
 stringData:
   accessKeyID: XXX # AWS AccessKeyID
   secretKey: XXXX # AWS SecretAccessKey
@@ -40,7 +40,7 @@ stringData:
   accountID: "123456789"  # ECR repository's account ID to use the token for
 ```
 
-The secret type should be `banzaicloud.io/aws-ecr-login-config`.
+The secret type should be `cisco.com/aws-ecr-login-config`.
 
 *Note*: the refresher needs list and watch Cluster permissions for secrets, and read access to the source secrets, and created/delete/update for the target secret.
 
@@ -64,7 +64,7 @@ For example the following `CustomResource` instructs IMPS to create a secret cal
 annotation:
 
 ```yaml
-apiVersion: images.banzaicloud.io/v1alpha1
+apiVersion: images.cisco.com/v1alpha1
 kind: ImagePullSecret
 metadata:
   name: imps
@@ -126,7 +126,7 @@ kind: Secret
 metadata:
   name: ecr-pull-secret
   namespace: registry-access
-type: banzaicloud.io/aws-ecr-login-config
+type: cisco.com/aws-ecr-login-config
 stringData:
   accessKeyID: XXX # AWS AccessKeyID
   secretKey: XXXX # AWS SecretAccessKey
@@ -142,7 +142,7 @@ The following CR will provision the `.spec.registry.credentials` login credentia
 `.spec.target.names.`:
 
 ```yaml
-apiVersion: images.banzaicloud.io/v1alpha1
+apiVersion: images.cisco.com/v1alpha1
 kind: ImagePullSecret
 metadata:
   name: imps
@@ -187,7 +187,7 @@ match (logical OR).
 
 For example:
 ```yaml
-apiVersion: images.banzaicloud.io/v1alpha1
+apiVersion: images.cisco.com/v1alpha1
 kind: ImagePullSecret
 metadata:
   name: imps

@@ -19,7 +19,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - images.banzaicloud.io
+  - images.cisco.com
   resources:
   - imagepullsecrets
   verbs:
@@ -31,7 +31,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - images.banzaicloud.io
+  - images.cisco.com
   resources:
   - imagepullsecrets/status
   verbs:

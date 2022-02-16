@@ -20,7 +20,7 @@ spec:
         backyards.banzaicloud.io/operator-release: stable
         {{- end }}
         {{- if .Values.istio.revision }}
-        istio.banzaicloud.io/rev: {{ .Values.istio.revision }}
+        istio.io/rev: {{ .Values.istio.revision }}
         {{- end }}
     {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}

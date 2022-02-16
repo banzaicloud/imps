@@ -108,7 +108,7 @@ deploy: ensure-tools  manifests			## Deploy controller in the configured Kuberne
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
 manifests: ensure-tools
-	${REPO_ROOT}/bin/controller-gen $(CRD_OPTIONS) rbac:roleName=binary-role object webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	cd api && ${REPO_ROOT}/bin/controller-gen $(CRD_OPTIONS) rbac:roleName=binary-role object webhook paths="./..." output:crd:artifacts:config=../config/crd/bases
 
 .PHONY: fmt
 fmt:	## Run go fmt against code

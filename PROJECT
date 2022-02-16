@@ -1,4 +1,4 @@
-domain: banzaicloud.io
+domain: cisco.com
 repo: github.com/banzaicloud/backyards/services/imp
 resources:
 - group: images

@@ -13,7 +13,7 @@ metadata:
 stringData:
   test: "test12345"
 ---
-apiVersion: images.banzaicloud.io/v1alpha1
+apiVersion: images.cisco.com/v1alpha1
 kind: ImagePullSecret
 metadata:
   name: imps-test-1

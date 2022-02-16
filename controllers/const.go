@@ -15,5 +15,5 @@
 package controllers
 
 const (
-	labelImpsOwnerUID = "images.banzaicloud.io/owner-uid"
+	labelImpsOwnerUID = "images.cisco.com/owner-uid"
 )

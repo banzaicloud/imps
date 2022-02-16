@@ -4,9 +4,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
-  name: imagepullsecrets.images.banzaicloud.io
+  name: imagepullsecrets.images.cisco.com
 spec:
-  group: images.banzaicloud.io
+  group: images.cisco.com
   names:
     kind: ImagePullSecret
     listKind: ImagePullSecretList

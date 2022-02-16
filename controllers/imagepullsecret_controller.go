@@ -48,8 +48,8 @@ type ImagePullSecretReconciler struct {
 	PeriodicReconcileInterval time.Duration
 }
 
-// +kubebuilder:rbac:groups=images.banzaicloud.io,resources=imagepullsecrets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=images.banzaicloud.io,resources=imagepullsecrets/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=images.cisco.com,resources=imagepullsecrets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=images.cisco.com,resources=imagepullsecrets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;update;patch
 func (r *ImagePullSecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {

@@ -1,6 +1,6 @@
 {{- if .Values.defaultConfig.enabled }}
 ---
-apiVersion: images.banzaicloud.io/v1alpha1
+apiVersion: images.cisco.com/v1alpha1
 kind: ImagePullSecret
 metadata:
   name: {{ include "imagepullsecret-controller.fullname" . }}-default

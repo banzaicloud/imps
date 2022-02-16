@@ -17,5 +17,5 @@
 // +k8s:deepcopy-gen=package,register
 // +k8s:conversion-gen=github.com/banzaicloud/imps/api
 // +k8s:defaulter-gen=TypeMeta
-// +groupName=images.banzaicloud.io
+// +groupName=images.cisco.com
 package v1alpha1
