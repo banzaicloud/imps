@@ -31,9 +31,10 @@ type ECRLoginCredentialsProvider struct {
 	Credentials aws.Credentials
 	Region      string
 	AccountID   string
+	RoleArn     string
 }
 
-func NewECRLoginCredentialsProvider(accountID, region, keyID, secretAccessKey string) ECRLoginCredentialsProvider {
+func NewECRLoginCredentialsProvider(accountID, region, keyID, secretAccessKey string, roleArn string) ECRLoginCredentialsProvider {
 	return ECRLoginCredentialsProvider{
 		Credentials: aws.Credentials{
 			AccessKeyID:     keyID,
@@ -41,6 +42,7 @@ func NewECRLoginCredentialsProvider(accountID, region, keyID, secretAccessKey st
 		},
 		AccountID: accountID,
 		Region:    region,
+		RoleArn:   roleArn,
 	}
 }
 
@@ -49,7 +51,7 @@ func (p ECRLoginCredentialsProvider) GetURL() string {
 }
 
 func (p ECRLoginCredentialsProvider) LoginCredentials(ctx context.Context) ([]LoginCredentialsWithDetails, error) {
-	token, err := imps_ecr.GetAuthorizationToken(ctx, p.Region, p.Credentials)
+	token, err := imps_ecr.GetAuthorizationToken(ctx, p.Region, p.Credentials, p.RoleArn)
 	if err != nil {
 		return nil, err
 	}

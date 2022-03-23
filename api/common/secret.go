@@ -35,6 +35,7 @@ const (
 	ECRSecretAccountID      = "accountID"
 	ECRSecretKeyAccessKeyID = "accessKeyID"
 	ECRSecretSecretKey      = "secretKey"
+	ECRRoleArn              = "roleArn"
 )
 
 func NewBasicAuthSecret(secretNamespace, secretName, registry, user, password string) (*corev1.Secret, error) {

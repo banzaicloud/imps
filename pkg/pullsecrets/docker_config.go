@@ -102,6 +102,14 @@ func (c *Config) StaticProviderFromDockerConfig(data []byte) LoginCredentialProv
 	return NewStaticLoginCredentialProvider(dockerConfig)
 }
 
+func getOptionalFieldFromMap(data map[string][]byte, key string, defaultVal string) string {
+	value, found := data[key]
+	if !found {
+		return defaultVal
+	}
+	return string(value)
+}
+
 func getFieldFromMap(data map[string][]byte, key string) (string, error) {
 	value, found := data[key]
 	if !found {
@@ -132,7 +140,9 @@ func (c *Config) ECRProviderFromSecret(data map[string][]byte) LoginCredentialPr
 		return NewErroredCredentialProvider(err)
 	}
 
-	return NewECRLoginCredentialsProvider(accountID, region, accKeyID, secretKey)
+	roleArn := getOptionalFieldFromMap(data, common.ECRRoleArn, "")
+
+	return NewECRLoginCredentialsProvider(accountID, region, accKeyID, secretKey, roleArn)
 }
 
 type ResultingDockerConfig struct {

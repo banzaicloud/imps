@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	ecr_types "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 )
@@ -51,15 +50,8 @@ func NewECRToken(ctx context.Context, creds StringableCredentials) (*Token, erro
 }
 
 func (t *Token) Refresh(ctx context.Context) error {
-	client := ecr.NewFromConfig(aws.Config{
-		Region: t.Creds.Region,
-		Credentials: aws.CredentialsProviderFunc(func(context.Context) (aws.Credentials, error) {
-			return aws.Credentials{
-				AccessKeyID:     t.Creds.AccessKeyID,
-				SecretAccessKey: t.Creds.SecretAccessKey,
-			}, nil
-		}),
-	})
+
+	client := ecr.NewFromConfig(t.Creds.ToAwsConfig())
 
 	// note: RegistryIds is deprecated, any account's registries can be accessed via the returned token
 	authToken, err := client.GetAuthorizationToken(ctx, &ecr.GetAuthorizationTokenInput{})

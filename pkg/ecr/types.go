@@ -15,15 +15,44 @@
 package ecr
 
 import (
+	"context"
 	"fmt"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
 type StringableCredentials struct {
 	aws.Credentials
 	// Region specifies which region to connect to when using this credential
 	Region string
+	// Assume a role
+	RoleArn string
+}
+
+func (c *StringableCredentials) GetCreds(ctx context.Context) (aws.Credentials, error) {
+	return c.Credentials, nil
+}
+
+func (c *StringableCredentials) ToAwsConfig() aws.Config {
+	cfg := aws.Config{
+		Region: c.Region,
+		Credentials: aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
+			return c.Credentials, nil
+		}),
+	}
+	if len(c.RoleArn) != 0 {
+		// Create the credentials from AssumeRoleProvider to assume the role
+		// referenced by the `RoleArn`.
+		stsSvc := sts.NewFromConfig(cfg)
+		creds := stscreds.NewAssumeRoleProvider(stsSvc, c.RoleArn)
+		cfg.Credentials = aws.NewCredentialsCache(creds)
+	}
+	return cfg
+}
+
+func (c *StringableCredentials) Retrieve(ctx context.Context) (aws.Credentials, error) {
+	return c.Credentials, nil
 }
 
 func (c StringableCredentials) String() string {

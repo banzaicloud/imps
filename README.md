@@ -38,6 +38,7 @@ stringData:
   secretKey: XXXX # AWS SecretAccessKey
   region: us-east-1 # ECR repository's region to use the token for
   accountID: "123456789"  # ECR repository's account ID to use the token for
+  roleArn: "arn:aws:iam::0000000000000:role/ECR-PulllAccess" # Optional, use to assume role in cross account environments
 ```
 
 The secret type should be `banzaicloud.io/aws-ecr-login-config`.
@@ -132,6 +133,7 @@ stringData:
   secretKey: XXXX # AWS SecretAccessKey
   region: us-east-1 # ECR repository's region to use the token for
   accountID: "123456789"  # ECR repository's account ID to use the token for
+  roleArn: "arn:aws:iam::0000000000000:role/ECR-PulllAccess" # Optional, use to assume role in cross account environments
 ```
 
 *Note*: Make sure `accountID` is given as string and not bare numbers, Kubernetes Secret's `stringData` field will only accept strings.

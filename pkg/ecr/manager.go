@@ -42,10 +42,11 @@ func Initialize(logger logur.Logger) {
 
 var tokenManager *TokenManager = nil
 
-func GetAuthorizationToken(ctx context.Context, region string, credentials aws.Credentials) (ecr_types.AuthorizationData, error) {
+func GetAuthorizationToken(ctx context.Context, region string, credentials aws.Credentials, roleArn string) (ecr_types.AuthorizationData, error) {
 	return tokenManager.GetAuthorizationToken(ctx, StringableCredentials{
 		Credentials: credentials,
 		Region:      region,
+		RoleArn:     roleArn,
 	})
 }
 
