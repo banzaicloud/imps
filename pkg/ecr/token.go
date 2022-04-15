@@ -50,7 +50,6 @@ func NewECRToken(ctx context.Context, creds StringableCredentials) (*Token, erro
 }
 
 func (t *Token) Refresh(ctx context.Context) error {
-
 	client := ecr.NewFromConfig(t.Creds.ToAwsConfig())
 
 	// note: RegistryIds is deprecated, any account's registries can be accessed via the returned token
