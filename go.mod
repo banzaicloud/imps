@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.10.0
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.1.1
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.0
-	github.com/banzaicloud/imps/api v0.3.6
+	github.com/banzaicloud/imps/api v0.3.7
 	github.com/banzaicloud/operator-tools v0.24.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/pflag v1.0.5
