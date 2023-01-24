@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+-dev.[0-9]+"
+  pull_request:
+
+env:
+  GO_VERSION: 1.17
+  GOFLAGS: -mod=readonly
+  GOLANGCI_LINT_VERSION: 1.26.0
+
+jobs:
+  ci:
+    name: Run checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v3.1.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Cache Go module dependencies
+        id: cache-go-module-dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: go-mod-cache-${{ runner.os }}-${{ env.GO_VERSION }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            go-mod-cache-${{ runner.os }}-${{ env.GO_VERSION }}
+            go-mod-cache-${{ runner.os }}
+            go-mod-cache
+
+      - name: Set Git refname
+        id: set-git-refname
+        run: echo ::set-output name=git_refname::$(echo "${{ github.ref }}" | sed -r 's@refs/(heads|pull|tags)/@@g' )
+
+      - name: Cache licenses
+        id: cache-licenses
+        uses: actions/cache@v2
+        with:
+          path: .licensei.cache
+          key: licensei-v1-${{ steps.set-git-refname.outputs.git_refname }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            licensei-v1-${{ steps.set-git-refname.outputs.git_refname }}
+            licensei-v1-master
+            licensei-v1
+
+      - name: Download license information for dependencies
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # Note: this is required for licensei auth in steps to avoid rate-limiting.
+        run: make license-cache
+
+      - name: List license information for dependencies
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # Note: this is required for licensei auth in steps to avoid rate-limiting.
+        run: ./bin/licensei list
+
+      - name: Check dependency licenses
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # Note: this is required for licensei auth in steps to avoid rate-limiting.
+        run: make license-check
+
+      - name: Run lint
+        run: GOLANGCI_VERSION=${{ env.GOLANGCI_LINT_VERSION }} make lint
+
+  build:
+    name: Build project
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v3.1.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Cache Go module dependencies
+        id: cache-go-module-dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: go-mod-cache-${{ runner.os }}-${{ env.GO_VERSION }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            go-mod-cache-${{ runner.os }}-${{ env.GO_VERSION }}
+            go-mod-cache-${{ runner.os }}
+            go-mod-cache
+
+      - name: Run build
+        run: make build build-refresher
+
+  tests:
+    name: Run tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v3.1.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Restore Go module dependencies cache
+        id: cache-go-module-dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: go-mod-cache-${{ runner.os }}-${{ env.GO_VERSION }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            go-mod-cache-${{ runner.os }}-${{ env.GO_VERSION }}
+            go-mod-cache-${{ runner.os }}
+            go-mod-cache
+
+      - name: Run tests
+        run: make test
