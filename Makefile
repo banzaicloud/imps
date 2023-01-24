@@ -7,11 +7,11 @@ CHART_NAME = imagepullsecrets
 # Image URL to use all building/pushing image targets
 IMG ?= imagepullsecrects:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true"
+CRD_OPTIONS ?= "crd"
 # TODO: Use this when allowDangerousTypes feature is released to support floats
 # CRD_OPTIONS ?= "crd:trivialVersions=true,allowDangerousTypes=true"
-LICENSEI_VERSION = 0.3.1
-GOLANGCI_VERSION ?= 1.28.3
+LICENSEI_VERSION = 0.7.0
+GOLANGCI_VERSION ?= 1.45.2
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))

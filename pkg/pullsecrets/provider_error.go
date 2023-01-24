@@ -16,8 +16,10 @@ package pullsecrets
 
 import "context"
 
-/* ErroredCredentialProvider can be used to store a setup error into the config object
-   so that at least the providers that are working correctly gets reconciled.
+/*
+ErroredCredentialProvider can be used to store a setup error into the config object
+
+	so that at least the providers that are working correctly gets reconciled.
 */
 type ErroredCredentialProvider struct {
 	Error error
