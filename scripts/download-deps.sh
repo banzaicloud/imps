@@ -2,8 +2,7 @@
 
 set -euo pipefail
 
-controller_gen_version=0.6.2
-kuttl_version=0.8.0
+controller_gen_version=0.9.2
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 binpath=${script_dir}/../bin
@@ -23,10 +22,10 @@ function ensure-binary-version() {
   fi
 
   if [ ! -e "${binpath}/${target_name}" ]; then
+
     BUILD_DIR=$(mktemp -d)
     pushd "${BUILD_DIR}"
-    go mod init foobar
-    GOBIN=${PWD} go get "${download_location}"
+    GOBIN=${BUILD_DIR} go install "${download_location}"
     mv "${bin_name}" "${binpath}/${target_name}"
     popd
     rm -rf "${BUILD_DIR}"
@@ -36,4 +35,3 @@ function ensure-binary-version() {
 }
 
 ensure-binary-version controller-gen ${controller_gen_version} "sigs.k8s.io/controller-tools/cmd/controller-gen@v${controller_gen_version}"
-

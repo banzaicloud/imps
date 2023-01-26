@@ -10,13 +10,17 @@ istio:
 podAnnotations: {}
 
 podSecurityContext:
-  runAsUser: 65534
-  runAsGroup: 65534
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
 securityContext:
   allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
 image:
   repository: ghcr.io/banzaicloud/imagepullsecrets
-  tag: v0.3.7
+  tag: v0.3.8
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
