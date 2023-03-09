@@ -65,7 +65,7 @@ jobs:
         id: set-helm-push-enabled
         run: |
           HELM_PUSH_ENABLED=""
-          if [ "${{ github.event_name }}" == "push" ] && echo "${{ steps.set-git-refname.outputs.git_refname }}" | grep -E -q "^(chart/)?[^/]+/[0-9]+\.[0-9]+\.[0-9]+"; then
+          if [ "${{ github.event_name }}" == "push" ] && echo "${{ steps.set-git-refname.outputs.git_refname }}" | grep -E -q "^(deploy/charts/v)?[^/]+/[0-9]+\.[0-9]+\.[0-9]+"; then
             HELM_PUSH_ENABLED=1
           else
             printf >&2 "Unstable chart (%s) from %s event, chart will not be pushed" "${{ steps.set-git-refname.outputs.git_refname }}" "${{ github.event_name }}"
@@ -78,7 +78,7 @@ jobs:
         name: Set chart name
         id: set-chart-name
         run: |
-          CHART_NAME="$(echo "${{ steps.set-git-refname.outputs.git_refname }}}" | awk -F '/' '{print $(NF-1)}')"
+          CHART_NAME="imagepullsecrets"
 
           echo "CHART_NAME=${CHART_NAME}"
           echo "chart_name=${CHART_NAME}" >> $GITHUB_OUTPUT
