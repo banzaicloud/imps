@@ -67,7 +67,7 @@ jobs:
       - name: Check dependency licenses
         env:
           GITHUB_TOKEN: ${{ github.token }} # Note: this is required for licensei auth in steps to avoid rate-limiting.
-        run: make license-check
+        run: go mod vendor && make license-check
 
       - name: Run lint
         run: GOLANGCI_VERSION=${{ env.GOLANGCI_LINT_VERSION }} make lint
