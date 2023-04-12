@@ -38,6 +38,7 @@ WORKDIR /
 COPY --from=builder /etc/nsswitch.conf.build /etc/nsswitch.conf
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /workspace/LICENSE.md /licenses/LICENSE.md
 
 COPY --from=builder /workspace/manager .
 USER nobody:nobody

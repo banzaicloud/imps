@@ -61,3 +61,15 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache
           tags: |
             ghcr.io/banzaicloud/imagepullsecrets-refresher:${{ steps.imagetag.outputs.value }}
+      - name: Build imagepullsecrets refresher with Red Hat UBI base image
+        uses: docker/build-push-action@v3
+        with:
+          file: Dockerfile-refresher
+          platforms: ${{ env.PLATFORMS }}
+          push: true
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+          build-args: |
+            FROM_IMAGE=redhat/ubi8-micro
+          tags: |
+            ghcr.io/banzaicloud/imagepullsecrets-refresher-rh-ubi8:${{ steps.imagetag.outputs.value }}
