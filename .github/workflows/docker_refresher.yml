@@ -70,6 +70,6 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
           build-args: |
-            FROM_IMAGE=redhat/ubi8-micro
+            FROM_IMAGE=redhat/ubi8-micro:8.7
           tags: |
             ghcr.io/banzaicloud/imagepullsecrets-refresher-rh-ubi8:${{ steps.imagetag.outputs.value }}
