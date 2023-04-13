@@ -125,3 +125,14 @@ jobs:
 
       - name: Run tests
         run: make test
+
+  artifacts:
+    name: Artifacts
+    uses: ./.github/workflows/artifacts.yaml
+    with:
+      publish: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      security-events: write
