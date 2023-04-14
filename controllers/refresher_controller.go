@@ -20,8 +20,6 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
-	"github.com/banzaicloud/imps/internal/cron"
-	"github.com/banzaicloud/imps/pkg/pullsecrets"
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -33,6 +31,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+
+	"github.com/banzaicloud/imps/internal/cron"
+	"github.com/banzaicloud/imps/pkg/pullsecrets"
 )
 
 // RefresherReconciler reconciles a AlertingPolicy object

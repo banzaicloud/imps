@@ -37,13 +37,13 @@ linters-settings:
     min-confidence: 0.1
   gocyclo:
     min-complexity: 40
-    gci:
-        sections:
-          - standard
-          - default
-          - prefix(github.com/banzaicloud/imps)
-    goimports:
-        local-prefixes: github.com/banzaicloud/imps
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/banzaicloud/imps)
+  goimports:
+    local-prefixes: github.com/banzaicloud/imps
   gocritic:
     disabled-checks:
       - ifElseChain

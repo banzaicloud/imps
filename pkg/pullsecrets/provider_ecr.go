@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+
 	"github.com/banzaicloud/imps/api/common"
 	impsEcr "github.com/banzaicloud/imps/pkg/ecr"
 )

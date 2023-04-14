@@ -8,11 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/imps/api/v1alpha1"
-	"github.com/banzaicloud/imps/controllers"
-	"github.com/banzaicloud/imps/internal/errorhandler"
-	"github.com/banzaicloud/imps/internal/log"
-	"github.com/banzaicloud/imps/pkg/ecr"
+	// +kubebuilder:scaffold:imports
 	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -21,6 +17,12 @@ import (
 	logrintegration "logur.dev/integration/logr"
 	"logur.dev/logur"
 	ctrl "sigs.k8s.io/controller-runtime"
+
+	"github.com/banzaicloud/imps/api/v1alpha1"
+	"github.com/banzaicloud/imps/controllers"
+	"github.com/banzaicloud/imps/internal/errorhandler"
+	"github.com/banzaicloud/imps/internal/log"
+	"github.com/banzaicloud/imps/pkg/ecr"
 )
 
 var (
