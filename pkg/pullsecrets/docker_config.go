@@ -20,15 +20,12 @@ import (
 	"fmt"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/banzaicloud/imps/api/common"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"emperror.dev/errors"
 )
 
 func NewDockerRegistryConfig() common.DockerRegistryConfig {
@@ -67,9 +64,9 @@ func NewConfigFromSecrets(ctx context.Context, c client.Client, refs []types.Nam
 			Namespace: secretRef.Namespace,
 			Name:      secretRef.Name,
 		}, &secret)
-
 		if err != nil {
 			config.Registries[secretName] = NewErroredCredentialProvider(err)
+
 			continue
 		}
 
@@ -77,8 +74,8 @@ func NewConfigFromSecrets(ctx context.Context, c client.Client, refs []types.Nam
 		case common.SecretTypeBasicAuth:
 			dockerConfig, found := secret.Data[common.SecretKeyDockerConfig]
 			if !found {
-				config.Registries[secretName] = NewErroredCredentialProvider(
-					errors.NewWithDetails("no docker configuration found in secret", "secret", secret.ObjectMeta))
+				config.Registries[secretName] = NewErroredCredentialProvider(errors.NewWithDetails("no docker configuration found in secret", "secret", secret.ObjectMeta))
+
 				continue
 			}
 			config.Registries[secretName] = config.StaticProviderFromDockerConfig(dockerConfig)
@@ -89,6 +86,7 @@ func NewConfigFromSecrets(ctx context.Context, c client.Client, refs []types.Nam
 				errors.NewWithDetails("unknown secret type", "type", secret.Type, "secret", secret.ObjectMeta))
 		}
 	}
+
 	return config
 }
 
@@ -107,6 +105,7 @@ func getOptionalFieldFromMap(data map[string][]byte, key string, defaultVal stri
 	if !found {
 		return defaultVal
 	}
+
 	return string(value)
 }
 
@@ -153,7 +152,7 @@ type ResultingDockerConfig struct {
 
 func (c Config) ResultingDockerConfig(ctx context.Context) (*ResultingDockerConfig, error) {
 	finalRegistryConfig := NewDockerRegistryConfig()
-	var minExpiration *time.Time = nil
+	var minExpiration *time.Time
 	secretErrors := NewErrorsPerSecret()
 
 	for secret, provider := range c.Registries {
@@ -161,6 +160,7 @@ func (c Config) ResultingDockerConfig(ctx context.Context) (*ResultingDockerConf
 		credentials, err := provider.LoginCredentials(ctx)
 		if err != nil {
 			secretErrors.SetSecretError(secret, err)
+
 			continue
 		}
 

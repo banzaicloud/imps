@@ -19,27 +19,22 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/imps/pkg/pullsecrets"
-
 	"emperror.dev/errors"
+	"github.com/banzaicloud/imps/api/v1alpha1"
+	"github.com/banzaicloud/imps/pkg/pullsecrets"
+	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/banzaicloud/imps/api/v1alpha1"
-	"github.com/banzaicloud/operator-tools/pkg/reconciler"
-
 	"logur.dev/logur"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var (
-	requeueObject = ctrl.Result{
-		Requeue:      true,
-		RequeueAfter: 5 * time.Second,
-	}
-)
+var requeueObject = ctrl.Result{
+	Requeue:      true,
+	RequeueAfter: 5 * time.Second,
+}
 
 func (r *ImagePullSecretReconciler) setFailedStatus(ctx context.Context, imps *v1alpha1.ImagePullSecret, failureError error) {
 	imps.Status.Status = v1alpha1.ReconciliationFailed
@@ -121,6 +116,7 @@ func (r *ImagePullSecretReconciler) reconcile(ctx context.Context, req ctrl.Requ
 		r.setReadyStatus(ctx, &imps, targetNamespaces, resultingConfig.Expiration)
 	}
 	logger.Info("Reconciling ImagePullSecret finished")
+
 	return result, err
 }
 
@@ -132,6 +128,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 			"imps":  imps,
 		})
 		r.Recorder.Event(imps, "Warning", "SecretReconciliationError", fmt.Sprintf("Cannot list namespaces requiring the secret: %s", err.Error()))
+
 		return requeueObject, nil, err
 	}
 
@@ -150,6 +147,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 			})
 			r.Recorder.Event(imps, "Warning", "SecretReconciliationError", fmt.Sprintf("Cannot reconcile secret: %s/%s", namespaceName, imps.Spec.Target.Secret.Name))
 			wasError = true
+
 			continue
 		}
 		r.Log.Info("reconciled secret", map[string]interface{}{
@@ -172,6 +170,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 			"imps":  imps,
 		})
 		r.Recorder.Event(imps, "Warning", "SecretReconciliationError", fmt.Sprintf("Cannot enumerate secrets: %s", err.Error()))
+
 		return requeueObject, nil, err
 	}
 
@@ -203,6 +202,7 @@ func (r *ImagePullSecretReconciler) reconcileImagePullSecret(ctx context.Context
 					"secret": existingSecret,
 				})
 				r.Recorder.Event(imps, "Warning", "SecretDeletionError", fmt.Sprintf("Cannot remove secret %s/%s", existingSecret.Namespace, existingSecret.Name))
+
 				return requeueObject, nil, err
 			}
 		}
@@ -237,6 +237,7 @@ func (r *ImagePullSecretReconciler) namespacesRequiringSecret(ctx context.Contex
 				"error": err,
 				"imps":  imps,
 			})
+
 			continue
 		}
 		if shouldReconcile {
@@ -267,6 +268,7 @@ func (r *ImagePullSecretReconciler) anyPodMatchesSelectorInNS(ctx context.Contex
 				"pod":   pod,
 				"imps":  imps,
 			})
+
 			continue
 		}
 
@@ -274,6 +276,7 @@ func (r *ImagePullSecretReconciler) anyPodMatchesSelectorInNS(ctx context.Contex
 			return true, nil
 		}
 	}
+
 	return false, nil
 }
 

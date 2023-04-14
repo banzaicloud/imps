@@ -16,9 +16,6 @@ jobs:
     name: Checks
     runs-on: ubuntu-latest
 
-    env:
-      GOLANGCI_LINT_VERSION: 1.26.0
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # v3.5.1
@@ -55,7 +52,7 @@ jobs:
         run: go mod vendor && make license-check
 
       - name: Run lint
-        run: GOLANGCI_VERSION=${{ env.GOLANGCI_LINT_VERSION }} make lint
+        run: make lint
 
   build:
     name: Build

@@ -43,6 +43,7 @@ func (e ErrorsPerSecret) AsStatus() map[string]string {
 			status[secret] = err.Error()
 		}
 	}
+
 	return status
 }
 
@@ -54,6 +55,7 @@ func (e ErrorsPerSecret) FailedSecrets() []string {
 			invalidSecrets = append(invalidSecrets, secret)
 		}
 	}
+
 	return invalidSecrets
 }
 

@@ -20,11 +20,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/banzaicloud/imps/api/common"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
-
-	imps_ecr "github.com/banzaicloud/imps/pkg/ecr"
+	"github.com/banzaicloud/imps/api/common"
+	impsEcr "github.com/banzaicloud/imps/pkg/ecr"
 )
 
 type ECRLoginCredentialsProvider struct {
@@ -51,7 +49,7 @@ func (p ECRLoginCredentialsProvider) GetURL() string {
 }
 
 func (p ECRLoginCredentialsProvider) LoginCredentials(ctx context.Context) ([]LoginCredentialsWithDetails, error) {
-	token, err := imps_ecr.GetAuthorizationToken(ctx, p.Region, p.Credentials, p.RoleArn)
+	token, err := impsEcr.GetAuthorizationToken(ctx, p.Region, p.Credentials, p.RoleArn)
 	if err != nil {
 		return nil, err
 	}
@@ -61,6 +59,7 @@ func (p ECRLoginCredentialsProvider) LoginCredentials(ctx context.Context) ([]Lo
 	}
 
 	splitAuth := strings.SplitN(string(decodedAuth), ":", 2)
+
 	return []LoginCredentialsWithDetails{
 		{
 			LoginCredentials: common.LoginCredentials{

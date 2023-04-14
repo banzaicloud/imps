@@ -18,25 +18,21 @@ import (
 	"context"
 	"time"
 
+	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"github.com/banzaicloud/imps/internal/cron"
+	"github.com/banzaicloud/imps/pkg/pullsecrets"
+	"github.com/banzaicloud/operator-tools/pkg/reconciler"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"logur.dev/logur"
+	ctrl "sigs.k8s.io/controller-runtime"
 	ctrlBuilder "sigs.k8s.io/controller-runtime/pkg/builder"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	"github.com/banzaicloud/imps/pkg/pullsecrets"
-
-	"emperror.dev/emperror"
-	"logur.dev/logur"
-
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/banzaicloud/imps/internal/cron"
-	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 )
 
 // RefresherReconciler reconciles a AlertingPolicy object
@@ -58,6 +54,7 @@ func (r *RefresherReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if err != nil {
 		r.ErrorHandler.Handle(err)
 	}
+
 	return result, err
 }
 
@@ -77,6 +74,7 @@ func (r *RefresherReconciler) isMatchingSecret(obj client.Object) []ctrl.Request
 	secret, ok := obj.(*corev1.Secret)
 	if !ok {
 		r.Log.Info("object is not a Secret")
+
 		return []ctrl.Request{}
 	}
 
@@ -137,6 +135,7 @@ func (r *RefresherReconciler) reconcile(ctx context.Context, req ctrl.Request) (
 				})
 			}
 		}
+
 		return result, err
 	}
 

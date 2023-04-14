@@ -31,6 +31,6 @@ func NewErroredCredentialProvider(err error) ErroredCredentialProvider {
 	}
 }
 
-func (p ErroredCredentialProvider) LoginCredentials(ctx context.Context) ([]LoginCredentialsWithDetails, error) {
+func (p ErroredCredentialProvider) LoginCredentials(_ context.Context) ([]LoginCredentialsWithDetails, error) {
 	return nil, p.Error
 }

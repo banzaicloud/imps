@@ -19,22 +19,20 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
-	"logur.dev/logur"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
+	"github.com/banzaicloud/imps/api/v1alpha1"
+	"github.com/banzaicloud/imps/internal/cron"
+	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
+	"logur.dev/logur"
 	ctrl "sigs.k8s.io/controller-runtime"
 	ctrlBuilder "sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	"github.com/banzaicloud/imps/api/v1alpha1"
-	"github.com/banzaicloud/imps/internal/cron"
-	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 )
 
 // AlertingPolicyReconciler reconciles a AlertingPolicy object
@@ -58,6 +56,7 @@ func (r *ImagePullSecretReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	if err != nil {
 		r.ErrorHandler.Handle(err)
 	}
+
 	return result, err
 }
 
@@ -87,6 +86,7 @@ func (r *ImagePullSecretReconciler) impsMatchingNamespace(obj client.Object) []c
 	ns, ok := obj.(*corev1.Namespace)
 	if !ok {
 		r.Log.Info("object is not a Namespace")
+
 		return []ctrl.Request{}
 	}
 
@@ -95,6 +95,7 @@ func (r *ImagePullSecretReconciler) impsMatchingNamespace(obj client.Object) []c
 	err := r.Client.List(context.TODO(), impsList)
 	if err != nil {
 		r.Log.Info(err.Error())
+
 		return []ctrl.Request{}
 	}
 
@@ -107,6 +108,7 @@ func (r *ImagePullSecretReconciler) impsMatchingNamespace(obj client.Object) []c
 				"namespace": ns,
 				"error":     err,
 			})
+
 			continue
 		}
 
@@ -119,6 +121,7 @@ func (r *ImagePullSecretReconciler) impsMatchingNamespace(obj client.Object) []c
 			})
 		}
 	}
+
 	return res
 }
 
@@ -126,6 +129,7 @@ func (r *ImagePullSecretReconciler) impsMatchingPod(obj client.Object) []ctrl.Re
 	pod, ok := obj.(*corev1.Pod)
 	if !ok {
 		r.Log.Info("object is not a Pod or Namespace")
+
 		return []ctrl.Request{}
 	}
 
@@ -135,7 +139,6 @@ func (r *ImagePullSecretReconciler) impsMatchingPod(obj client.Object) []ctrl.Re
 	err := r.Client.Get(context.TODO(), types.NamespacedName{
 		Name: pod.Namespace,
 	}, podsNamespace)
-
 	if err != nil {
 		r.Log.Warn("cannot get pod's namespace, please authorize the controller to list namespaces, or too many reconcilations will be executed", map[string]interface{}{
 			"error":     err,
@@ -149,6 +152,7 @@ func (r *ImagePullSecretReconciler) impsMatchingPod(obj client.Object) []ctrl.Re
 	err = r.Client.List(context.TODO(), impsList)
 	if err != nil {
 		r.Log.Info(err.Error())
+
 		return []ctrl.Request{}
 	}
 	var res []ctrl.Request
@@ -160,6 +164,7 @@ func (r *ImagePullSecretReconciler) impsMatchingPod(obj client.Object) []ctrl.Re
 				"pod":   pod,
 				"error": err,
 			})
+
 			continue
 		}
 
@@ -184,6 +189,7 @@ func (r *ImagePullSecretReconciler) impsMatchingPod(obj client.Object) []ctrl.Re
 			})
 		}
 	}
+
 	return res
 }
 
@@ -191,6 +197,7 @@ func (r *ImagePullSecretReconciler) impsReferencingSecret(obj client.Object) []c
 	secret, ok := obj.(*corev1.Secret)
 	if !ok {
 		r.Log.Info("object is not a Secret")
+
 		return []ctrl.Request{}
 	}
 
@@ -199,6 +206,7 @@ func (r *ImagePullSecretReconciler) impsReferencingSecret(obj client.Object) []c
 	err := r.Client.List(context.TODO(), impsList)
 	if err != nil {
 		r.Log.Info(err.Error())
+
 		return []ctrl.Request{}
 	}
 
@@ -215,5 +223,6 @@ func (r *ImagePullSecretReconciler) impsReferencingSecret(obj client.Object) []c
 			}
 		}
 	}
+
 	return res
 }

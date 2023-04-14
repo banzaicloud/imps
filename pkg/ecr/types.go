@@ -31,14 +31,14 @@ type StringableCredentials struct {
 	RoleArn string
 }
 
-func (c *StringableCredentials) GetCreds(ctx context.Context) (aws.Credentials, error) {
+func (c *StringableCredentials) GetCreds(_ context.Context) (aws.Credentials, error) {
 	return c.Credentials, nil
 }
 
 func (c *StringableCredentials) ToAwsConfig() aws.Config {
 	cfg := aws.Config{
 		Region: c.Region,
-		Credentials: aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
+		Credentials: aws.CredentialsProviderFunc(func(_ context.Context) (aws.Credentials, error) {
 			return c.Credentials, nil
 		}),
 	}
@@ -49,10 +49,11 @@ func (c *StringableCredentials) ToAwsConfig() aws.Config {
 		creds := stscreds.NewAssumeRoleProvider(stsSvc, c.RoleArn)
 		cfg.Credentials = aws.NewCredentialsCache(creds)
 	}
+
 	return cfg
 }
 
-func (c *StringableCredentials) Retrieve(ctx context.Context) (aws.Credentials, error) {
+func (c *StringableCredentials) Retrieve(_ context.Context) (aws.Credentials, error) {
 	return c.Credentials, nil
 }
 

@@ -39,6 +39,6 @@ func NewStaticLoginCredentialProvider(parsedDockerConfig common.DockerRegistryCo
 	return p
 }
 
-func (p StaticLoginCredentialProvider) LoginCredentials(ctx context.Context) ([]LoginCredentialsWithDetails, error) {
+func (p StaticLoginCredentialProvider) LoginCredentials(_ context.Context) ([]LoginCredentialsWithDetails, error) {
 	return p.Credentials, nil
 }
