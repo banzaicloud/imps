@@ -19,7 +19,7 @@ require (
 	k8s.io/apimachinery v0.24.2
 	k8s.io/client-go v0.24.2
 	logur.dev/adapter/logrus v0.5.0
-	logur.dev/integration/logr v0.3.2
+	logur.dev/integration/logr v0.5.0
 	logur.dev/logur v0.17.0
 	sigs.k8s.io/controller-runtime v0.11.0
 )

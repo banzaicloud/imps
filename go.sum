@@ -1025,8 +1025,8 @@ k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 h1:HNSDgDCrr/6Ly3WEGKZftiE7IY19V
 k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 logur.dev/adapter/logrus v0.5.0 h1:cxsiceNXQLTKBk0keASgKAvrw9zzKa/XPE0Bn8tHXFI=
 logur.dev/adapter/logrus v0.5.0/go.mod h1:9VKOXYYAQU3gjKJj1gs4jwr+YtDlGHGRVJ4tVAWeRhQ=
-logur.dev/integration/logr v0.3.2 h1:/KbX4WQc6u6yGXjPijubJxvjC0u5p1iz5DD/7yNvEas=
-logur.dev/integration/logr v0.3.2/go.mod h1:jpbwZyAhaFAufORYW8DF6ujipBA4cUL3BJhYRXpagt0=
+logur.dev/integration/logr v0.5.0 h1:Xy4/PIBbGKKsKGt+86sBJhMa8MSX5+XsyOaoBBU+tnw=
+logur.dev/integration/logr v0.5.0/go.mod h1:Kp0WOJ6LRV7ewobPZddHHoLmLOpDmi+phZFhpUWD1Qg=
 logur.dev/logur v0.16.1/go.mod h1:DyA5B+b6WjjCcnpE1+HGtTLh2lXooxRq+JmAwXMRK08=
 logur.dev/logur v0.17.0 h1:lwFZk349ZBY7KhonJFLshP/VhfFa6BxOjHxNnPHnEyc=
 logur.dev/logur v0.17.0/go.mod h1:DyA5B+b6WjjCcnpE1+HGtTLh2lXooxRq+JmAwXMRK08=
