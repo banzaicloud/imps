@@ -36,6 +36,11 @@ jobs:
     name: Controller image
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: true
+      matrix:
+        target: [ "distroless", "ubi8" ]
+
     permissions:
       contents: read
       packages: write
@@ -80,10 +85,12 @@ jobs:
           flavor: |
             latest = false
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{raw}}
-            type=raw,value=latest,enable=${{ github.ref_name == github.event.repository.default_branch }}
+            type=ref,event=branch,suffix=-${{ matrix.target }}
+            type=ref,event=pr,suffix=-${{ matrix.target }}
+            type=semver,pattern={{raw}},suffix=-${{ matrix.target }}
+            type=semver,pattern={{raw}},enable=${{ matrix.target == 'distroless' }}
+            type=raw,value=latest,suffix=-${{ matrix.target }},enable=${{ github.ref_name == github.event.repository.default_branch }}
+            type=raw,value=latest,enable=${{ github.ref_name == github.event.repository.default_branch && matrix.target == 'distroless' }}
 
       # Multiple exporters are not supported yet
       # See https://github.com/moby/buildkit/pull/2760
@@ -94,6 +101,15 @@ jobs:
           cond: ${{ inputs.publish }}
           if_true: type=image,push=true
           if_false: type=oci,dest=image.tar
+
+      # UBI8 does not support ARMv7
+      - name: Determine platforms
+        uses: haya14busa/action-cond@1d6e8a12b20cdb4f1954feef9aa475b9c390cab5 # v1.1.1
+        id: platforms
+        with:
+          cond: ${{ matrix.target == 'ubi8' }}
+          if_true: linux/amd64,linux/arm64
+          if_false: linux/amd64,linux/arm64,linux/arm/v7
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
@@ -108,7 +124,8 @@ jobs:
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4.0.0
         with:
           context: .
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          target: ${{ matrix.target }}
+          platforms: ${{ steps.platforms.outputs.value }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -246,6 +263,15 @@ jobs:
           if_true: type=image,push=true
           if_false: type=oci,dest=image.tar
 
+      # UBI8 does not support ARMv7
+      - name: Determine platforms
+        uses: haya14busa/action-cond@1d6e8a12b20cdb4f1954feef9aa475b9c390cab5 # v1.1.1
+        id: platforms
+        with:
+          cond: ${{ matrix.target == 'ubi8' }}
+          if_true: linux/amd64,linux/arm64
+          if_false: linux/amd64,linux/arm64,linux/arm/v7
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
         with:
@@ -261,7 +287,7 @@ jobs:
           context: .
           file: Dockerfile-refresher
           target: ${{ matrix.target }}
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ steps.platforms.outputs.value }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
