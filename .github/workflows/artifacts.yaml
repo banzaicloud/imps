@@ -45,7 +45,7 @@ jobs:
     outputs:
       name: ${{ steps.image-name.outputs.value }}
       digest: ${{ steps.build.outputs.digest }}
-      ref: ${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }}
+      ref: ${{ steps.image-ref.outputs.value }}
 
     steps:
       - name: Checkout repository
@@ -70,7 +70,7 @@ jobs:
 
       - name: Set image name
         id: image-name
-        run: echo "value=ghcr.io/banzaicloud/imagepullsecrets" >> "$GITHUB_OUTPUT"
+        run: echo "value=ghcr.io/${{ github.repository_owner }}/imagepullsecrets" >> "$GITHUB_OUTPUT"
 
       - name: Gather build metadata
         id: meta
@@ -116,8 +116,12 @@ jobs:
           outputs: ${{ steps.build-output.outputs.value }}
           # push: ${{ inputs.publish }}
 
+      - name: Set image ref
+        id: image-ref
+        run: echo "value=${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }}" >> "$GITHUB_OUTPUT"
+
       - name: Fetch image
-        run: skopeo --insecure-policy copy docker://${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }} oci-archive:image.tar
+        run: skopeo --insecure-policy copy docker://${{ steps.image-ref.outputs.value }} oci-archive:image.tar
         if: inputs.publish
 
       - name: Extract OCI tarball
@@ -135,22 +139,22 @@ jobs:
       - name: Upload SBOM as artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: Controller image SBOM
+          name: "[${{ github.job }}] SBOM"
           path: sbom-spdx.json
           retention-days: 5
 
       - name: Sign image
         run: |
-          cosign sign --yes --recursive "${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }}"
-          echo "::notice title=Verify signature::cosign verify --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' ${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }}"
-          echo "::notice title=Verify signature(pretty print)::cosign verify --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' ${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }} | jq '.[0]'"
+          cosign sign --yes --recursive "${{ steps.image-ref.outputs.value }}"
+          echo "::notice title=Verify signature::cosign verify --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' ${{ steps.image-ref.outputs.value }}"
+          echo "::notice title=Verify signature(pretty print)::cosign verify --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' ${{ steps.image-ref.outputs.value }} | jq '.[0]'"
         if: inputs.publish
 
       - name: Attach SBOM attestation
         run: |
-          cosign attest --yes --predicate sbom-spdx.json --type spdx "${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }}"
-          echo "::notice title=Verify SBOM attestation::cosign verify-attestation --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' --type spdx ${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }}"
-          echo "::notice title=Inspect SBOM::cosign verify-attestation --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' --type spdx ${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }} | jq '.payload |= @base64d | .payload | fromjson | select(.predicateType == \"https://spdx.dev/Document\") | .predicate | fromjson'"
+          cosign attest --yes --predicate sbom-spdx.json --type spdx "${{ steps.image-ref.outputs.value }}"
+          echo "::notice title=Verify SBOM attestation::cosign verify-attestation --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' --type spdx ${{ steps.image-ref.outputs.value }}"
+          echo "::notice title=Inspect SBOM::cosign verify-attestation --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' --type spdx ${{ steps.image-ref.outputs.value }} | jq '.payload |= @base64d | .payload | fromjson | select(.predicateType == \"https://spdx.dev/Document\") | .predicate | fromjson'"
         if: inputs.publish
 
       - name: Run Trivy vulnerability scanner
@@ -163,12 +167,12 @@ jobs:
       - name: Upload Trivy scan results as artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: Trivy scan results for controller image
+          name: "[${{ github.job }}] Trivy scan results"
           path: trivy-results.sarif
           retention-days: 5
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@d186a2a36cc67bfa1b860e6170d37fb9634742c7 # v2.2.11
+        uses: github/codeql-action/upload-sarif@7df0ce34898d659f95c0c4a09eaa8d4e32ee64db # v2.2.12
         with:
           sarif_file: trivy-results.sarif
 
@@ -190,7 +194,7 @@ jobs:
     outputs:
       name: ${{ steps.image-name.outputs.value }}
       digest: ${{ steps.build.outputs.digest }}
-      ref: ${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }}
+      ref: ${{ steps.image-ref.outputs.value }}
 
     steps:
       - name: Checkout repository
@@ -215,7 +219,7 @@ jobs:
 
       - name: Set image name
         id: image-name
-        run: echo "value=ghcr.io/banzaicloud/imagepullsecrets-refresher" >> "$GITHUB_OUTPUT"
+        run: echo "value=ghcr.io/${{ github.repository_owner }}/imagepullsecrets-refresher" >> "$GITHUB_OUTPUT"
 
       - name: Gather build metadata
         id: meta
@@ -265,8 +269,12 @@ jobs:
           outputs: ${{ steps.build-output.outputs.value }}
           # push: ${{ inputs.publish }}
 
+      - name: Set image ref
+        id: image-ref
+        run: echo "value=${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }}" >> "$GITHUB_OUTPUT"
+
       - name: Fetch image
-        run: skopeo --insecure-policy copy docker://${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }} oci-archive:image.tar
+        run: skopeo --insecure-policy copy docker://${{ steps.image-ref.outputs.value }} oci-archive:image.tar
         if: inputs.publish
 
       - name: Extract OCI tarball
@@ -284,22 +292,22 @@ jobs:
       - name: Upload SBOM as artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: Refresher image SBOM
+          name: "[${{ github.job }}] SBOM"
           path: sbom-spdx.json
           retention-days: 5
 
       - name: Sign image
         run: |
-          cosign sign --yes --recursive "${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }}"
-          echo "::notice title=Verify signature::cosign verify --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' ${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }}"
-          echo "::notice title=Verify signature(pretty print)::cosign verify --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' ${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }} | jq '.[0]'"
+          cosign sign --yes --recursive "${{ steps.image-ref.outputs.value }}"
+          echo "::notice title=Verify signature::cosign verify --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' ${{ steps.image-ref.outputs.value }}"
+          echo "::notice title=Verify signature(pretty print)::cosign verify --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' ${{ steps.image-ref.outputs.value }} | jq '.[0]'"
         if: inputs.publish
 
       - name: Attach SBOM attestation
         run: |
-          cosign attest --yes --predicate sbom-spdx.json --type spdx "${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }}"
-          echo "::notice title=Verify SBOM attestation::cosign verify-attestation --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' --type spdx ${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }}"
-          echo "::notice title=Inspect SBOM::cosign verify-attestation --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' --type spdx ${{ steps.image-name.outputs.value }}@${{ steps.build.outputs.digest }} | jq '.payload |= @base64d | .payload | fromjson | select(.predicateType == \"https://spdx.dev/Document\") | .predicate | fromjson'"
+          cosign attest --yes --predicate sbom-spdx.json --type spdx "${{ steps.image-ref.outputs.value }}"
+          echo "::notice title=Verify SBOM attestation::cosign verify-attestation --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' --type spdx ${{ steps.image-ref.outputs.value }}"
+          echo "::notice title=Inspect SBOM::cosign verify-attestation --certificate-identity 'https://github.com/${{ github.workflow_ref }}' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' --type spdx ${{ steps.image-ref.outputs.value }} | jq '.payload |= @base64d | .payload | fromjson | select(.predicateType == \"https://spdx.dev/Document\") | .predicate | fromjson'"
         if: inputs.publish
 
       - name: Run Trivy vulnerability scanner
@@ -312,11 +320,11 @@ jobs:
       - name: Upload Trivy scan results as artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: Trivy scan results for refresher image
+          name: "[${{ github.job }}] Trivy scan results"
           path: trivy-results.sarif
           retention-days: 5
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@d186a2a36cc67bfa1b860e6170d37fb9634742c7 # v2.2.11
+        uses: github/codeql-action/upload-sarif@7df0ce34898d659f95c0c4a09eaa8d4e32ee64db # v2.2.12
         with:
           sarif_file: trivy-results.sarif
