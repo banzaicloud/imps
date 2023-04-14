@@ -30,7 +30,7 @@ jobs:
 
       - name: Cache licenses
         id: cache-licenses
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: .licensei.cache
           key: licensei-v1-${{ github.ref_name }}-${{ hashFiles('go.sum') }}
