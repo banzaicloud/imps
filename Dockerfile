@@ -32,7 +32,7 @@ FROM redhat/ubi8-micro:8.7@sha256:6a56010de933f172b195a1a575855d37b70a4968be8edb
 
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /usr/local/src/imps/LICENSE.md /usr/local/src/imps/LICENSE.md
+COPY --from=builder /usr/local/src/imps/LICENSE /usr/local/src/imps/LICENSE
 
 COPY --from=builder /usr/local/bin/manager /usr/local/bin/manager
 
@@ -45,7 +45,7 @@ FROM gcr.io/distroless/base-debian11:latest@sha256:e711a716d8b7fe9c4f7bbf1477e8e
 
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /usr/local/src/imps/LICENSE.md /usr/local/src/imps/LICENSE.md
+COPY --from=builder /usr/local/src/imps/LICENSE /usr/local/src/imps/LICENSE
 
 COPY --from=builder /usr/local/bin/manager /usr/local/bin/manager
 

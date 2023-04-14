@@ -280,3 +280,7 @@ As it is visible here the `default` namespace's `test2` source credential has fa
 Other projects focusing on this problem space:
 - https://github.com/SUSE/registries-operator
 - https://github.com/titansoft-pte-ltd/imagepullsecret-patcher
+
+## License
+
+The project is licensed under the [Apache 2.0 License](LICENSE).
