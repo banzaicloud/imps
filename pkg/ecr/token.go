@@ -20,7 +20,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
-	ecr_types "github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	ecrTypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 )
 
 const (
@@ -31,7 +31,7 @@ const (
 
 type Token struct {
 	Creds                 StringableCredentials
-	CurrentToken          *ecr_types.AuthorizationData
+	CurrentToken          *ecrTypes.AuthorizationData
 	TokenValidityDuration time.Duration
 	LastQueriedAt         time.Time
 }

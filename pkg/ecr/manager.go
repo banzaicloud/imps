@@ -21,7 +21,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	ecr_types "github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	ecrTypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"logur.dev/logur"
 )
 
@@ -40,9 +40,9 @@ func Initialize(logger logur.Logger) {
 	tokenManager.start()
 }
 
-var tokenManager *TokenManager = nil
+var tokenManager *TokenManager
 
-func GetAuthorizationToken(ctx context.Context, region string, credentials aws.Credentials, roleArn string) (ecr_types.AuthorizationData, error) {
+func GetAuthorizationToken(ctx context.Context, region string, credentials aws.Credentials, roleArn string) (ecrTypes.AuthorizationData, error) {
 	return tokenManager.GetAuthorizationToken(ctx, StringableCredentials{
 		Credentials: credentials,
 		Region:      region,
@@ -104,26 +104,28 @@ func (t *TokenManager) discardOldTokens() {
 	}
 }
 
-func (t *TokenManager) GetAuthorizationToken(ctx context.Context, key StringableCredentials) (ecr_types.AuthorizationData, error) {
+func (t *TokenManager) GetAuthorizationToken(ctx context.Context, key StringableCredentials) (ecrTypes.AuthorizationData, error) {
 	t.Lock()
 	defer t.Unlock()
 	token, found := t.ManagedTokens[key.String()]
 	if !found {
 		token, err := NewECRToken(ctx, key)
 		if err != nil {
-			return ecr_types.AuthorizationData{}, err
+			return ecrTypes.AuthorizationData{}, err
 		}
 		t.ManagedTokens[key.String()] = token
 		if token.CurrentToken == nil {
-			return ecr_types.AuthorizationData{}, errors.New("no token is available")
+			return ecrTypes.AuthorizationData{}, errors.New("no token is available")
 		}
 		t.Logger.Info("token refreshed", map[string]interface{}{
 			"aws_access_key_id": token.Creds.AccessKeyID,
 			"region":            token.Creds.Region,
 		})
+
 		return *token.CurrentToken, nil
 	}
 
 	token.LastQueriedAt = time.Now()
+
 	return *token.CurrentToken, nil
 }

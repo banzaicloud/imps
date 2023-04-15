@@ -22,14 +22,28 @@ linters:
     - nestif
     - testpackage
     - nolintlint
+    - wrapcheck
+    - varnamelen
+    - ireturn
+    - exhaustivestruct
+    - exhaustruct
+    - gomoddirectives
+    - exhaustive
+    - cyclop
+    - ifshort
 
 linters-settings:
   golint:
     min-confidence: 0.1
   gocyclo:
     min-complexity: 40
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/banzaicloud/imps)
   goimports:
-    local-prefixes: github.com/banzaicloud
+    local-prefixes: github.com/banzaicloud/imps
   gocritic:
     disabled-checks:
       - ifElseChain

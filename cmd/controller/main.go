@@ -8,27 +8,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/imps/pkg/ecr"
-
-	"github.com/banzaicloud/operator-tools/pkg/reconciler"
-
-	logrintegration "logur.dev/integration/logr"
-
-	"github.com/banzaicloud/imps/internal/errorhandler"
-
+	// +kubebuilder:scaffold:imports
+	"github.com/cisco-open/operator-tools/pkg/reconciler"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/runtime"
-
-	"github.com/banzaicloud/imps/controllers"
-	"github.com/banzaicloud/imps/internal/log"
-
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	logrintegration "logur.dev/integration/logr"
 	"logur.dev/logur"
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/banzaicloud/imps/api/v1alpha1"
-	// +kubebuilder:scaffold:imports
+	"github.com/banzaicloud/imps/controllers"
+	"github.com/banzaicloud/imps/internal/errorhandler"
+	"github.com/banzaicloud/imps/internal/log"
+	"github.com/banzaicloud/imps/pkg/ecr"
 )
 
 var (

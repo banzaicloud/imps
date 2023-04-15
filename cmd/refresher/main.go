@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/cisco-open/operator-tools/pkg/reconciler"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -20,7 +21,6 @@ import (
 	"github.com/banzaicloud/imps/internal/errorhandler"
 	"github.com/banzaicloud/imps/internal/log"
 	"github.com/banzaicloud/imps/pkg/ecr"
-	"github.com/banzaicloud/operator-tools/pkg/reconciler"
 )
 
 var (

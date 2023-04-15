@@ -22,5 +22,6 @@ func (s StringSet) Has(needle string) bool {
 			return true
 		}
 	}
+
 	return false
 }
