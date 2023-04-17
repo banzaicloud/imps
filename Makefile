@@ -132,6 +132,10 @@ generate-helm-crds: ensure-tools	## Update the CRDs in our helm charts
 docker-build: test		## Build the docker image (to override image name please set IMG)
 	docker build . --build-arg LDFLAGS="${LDFLAGS}" -f ${CURDIR}/Dockerfile -t ${IMG}
 
+.PHONY: docker-build-refresher
+docker-build-refresher: test		## Build the docker image (to override image name please set IMG)
+	docker build . --build-arg LDFLAGS="${LDFLAGS}" -f ${CURDIR}/Dockerfile-refresher -t ${IMG}
+
 .PHONY: docker-push
 docker-push:			## Push the docker image (to override image name please set IMG)
 	docker push ${IMG}
