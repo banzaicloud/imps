@@ -5,7 +5,7 @@ RACE_DETECTOR ?= 0
 CHART_NAME = imagepullsecrets
 
 # Image URL to use all building/pushing image targets
-IMG ?= imagepullsecrects:latest
+IMG ?= imagepullsecrets:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd"
 # TODO: Use this when allowDangerousTypes feature is released to support floats
