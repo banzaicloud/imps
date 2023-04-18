@@ -5,7 +5,7 @@ RACE_DETECTOR ?= 0
 CHART_NAME = imagepullsecrets
 
 # Image URL to use all building/pushing image targets
-IMG ?= imagepullsecrects:latest
+IMG ?= imagepullsecrets:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd"
 # TODO: Use this when allowDangerousTypes feature is released to support floats
@@ -131,6 +131,10 @@ generate-helm-crds: ensure-tools	## Update the CRDs in our helm charts
 .PHONY: docker-build
 docker-build: test		## Build the docker image (to override image name please set IMG)
 	docker build . --build-arg LDFLAGS="${LDFLAGS}" -f ${CURDIR}/Dockerfile -t ${IMG}
+
+.PHONY: docker-build-refresher
+docker-build-refresher: test		## Build the docker image (to override image name please set IMG)
+	docker build . --build-arg LDFLAGS="${LDFLAGS}" -f ${CURDIR}/Dockerfile-refresher -t ${IMG}
 
 .PHONY: docker-push
 docker-push:			## Push the docker image (to override image name please set IMG)
