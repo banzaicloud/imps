@@ -7,7 +7,7 @@ require (
 	emperror.dev/errors v0.8.1
 	emperror.dev/handler/logur v0.5.0
 	github.com/aws/aws-sdk-go-v2 v1.17.8
-	github.com/aws/aws-sdk-go-v2/credentials v1.10.0
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.20
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.1.1
 	github.com/aws/aws-sdk-go-v2/service/sts v1.18.9
 	github.com/banzaicloud/imps/api v0.0.1
