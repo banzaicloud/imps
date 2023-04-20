@@ -42,8 +42,9 @@ ARG UID
 ARG GID
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /usr/local/src/imps/LICENSE /licenses/LICENSE
 
+# RedHat certification requires application license to be in /licenses dir
+COPY --from=builder /usr/local/src/imps/LICENSE /licenses/LICENSE
 COPY --from=builder /usr/local/bin/manager /manager
 
 COPY --from=builder /etc/passwd /etc/passwd
@@ -58,8 +59,9 @@ ARG UID
 ARG GID
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /usr/local/src/imps/LICENSE /licenses/LICENSE
 
+# RedHat certification requires application license to be in /licenses dir
+COPY --from=builder /usr/local/src/imps/LICENSE /licenses/LICENSE
 COPY --from=builder /usr/local/bin/manager /manager
 
 COPY --from=builder /etc/passwd /etc/passwd
