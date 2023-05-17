@@ -12,7 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.18.9
 	github.com/banzaicloud/imps/api v0.0.1
 	github.com/cisco-open/operator-tools v0.29.0
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
 	k8s.io/api v0.24.2
