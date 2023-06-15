@@ -3,7 +3,7 @@ module github.com/banzaicloud/imps/api
 go 1.18
 
 require (
-	emperror.dev/errors v0.8.0
+	emperror.dev/errors v0.8.1
 	k8s.io/api v0.20.11
 	k8s.io/apimachinery v0.20.11
 	sigs.k8s.io/controller-runtime v0.6.5
