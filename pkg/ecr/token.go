@@ -29,16 +29,22 @@ const (
 	assumedTokenValidityTime = 20 * time.Minute
 )
 
+type ECRClientInterface interface {
+	GetAuthorizationToken(ctx context.Context, input *ecr.GetAuthorizationTokenInput, _ ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error)
+}
+
 type Token struct {
 	Creds                 StringableCredentials
 	CurrentToken          *ecrTypes.AuthorizationData
 	TokenValidityDuration time.Duration
 	LastQueriedAt         time.Time
+	Client                ECRClientInterface
 }
 
-func NewECRToken(ctx context.Context, creds StringableCredentials) (*Token, error) {
+func NewECRToken(ctx context.Context, creds StringableCredentials, client ECRClientInterface) (*Token, error) {
 	token := &Token{
-		Creds: creds,
+		Creds:  creds,
+		Client: client,
 	}
 
 	err := token.Refresh(ctx)
@@ -50,10 +56,12 @@ func NewECRToken(ctx context.Context, creds StringableCredentials) (*Token, erro
 }
 
 func (t *Token) Refresh(ctx context.Context) error {
-	client := ecr.NewFromConfig(t.Creds.ToAwsConfig())
+	if t.Client == nil {
+		t.Client = ecr.NewFromConfig(t.Creds.ToAwsConfig())
+	}
 
 	// note: RegistryIds is deprecated, any account's registries can be accessed via the returned token
-	authToken, err := client.GetAuthorizationToken(ctx, &ecr.GetAuthorizationTokenInput{})
+	authToken, err := t.Client.GetAuthorizationToken(ctx, &ecr.GetAuthorizationTokenInput{})
 	if err != nil {
 		return err
 	}
