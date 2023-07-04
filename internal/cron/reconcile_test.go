@@ -10,6 +10,7 @@ import (
 )
 
 func TestCron_calculateRequeueAfter(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		result                    reconcile.Result
 		periodicReconcileInterval time.Duration
@@ -50,7 +51,9 @@ func TestCron_calculateRequeueAfter(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := calculateRequeueAfter(tt.args.result, tt.args.periodicReconcileInterval)
 
 			assert.Equal(t, tt.want, found)
@@ -59,6 +62,7 @@ func TestCron_calculateRequeueAfter(t *testing.T) {
 }
 
 func TestCron_EnsurePeriodicReconcile(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		interval time.Duration
 		result   reconcile.Result
@@ -99,7 +103,9 @@ func TestCron_EnsurePeriodicReconcile(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found, err := EnsurePeriodicReconcile(tt.args.interval, tt.args.result, tt.args.err)
 
 			assert.Equal(t, tt.want, found)

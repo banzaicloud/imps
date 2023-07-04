@@ -9,6 +9,7 @@ import (
 )
 
 func TestImagePullSecret_SplitNamespacesByMatch(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		allNs corev1.NamespaceList
 	}
@@ -142,7 +143,9 @@ func TestImagePullSecret_SplitNamespacesByMatch(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			matchingNs, nonMatichingNs, err := tt.imagePullSecret.SplitNamespacesByMatch(tt.args.allNs)
 
 			assert.DeepEqual(t, tt.expectedMatchingNs, matchingNs)
@@ -153,6 +156,7 @@ func TestImagePullSecret_SplitNamespacesByMatch(t *testing.T) {
 }
 
 func TestImagePullSecret_MatchesPod(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		pod corev1.Pod
 	}
@@ -225,7 +229,9 @@ func TestImagePullSecret_MatchesPod(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found, err := tt.imagePullSecret.MatchesPod(&tt.args.pod)
 
 			assert.Equal(t, tt.want, found)
@@ -235,6 +241,7 @@ func TestImagePullSecret_MatchesPod(t *testing.T) {
 }
 
 func TestImagePullSecret_MatchesNamespace(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		ns corev1.Namespace
 	}
@@ -281,7 +288,9 @@ func TestImagePullSecret_MatchesNamespace(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found, err := tt.imagePullSecret.MatchesNamespace(&tt.args.ns)
 
 			assert.Equal(t, tt.want, found)
@@ -291,6 +300,7 @@ func TestImagePullSecret_MatchesNamespace(t *testing.T) {
 }
 
 func TestObjectSelectorConfiguration_IsEmpty(t *testing.T) {
+	t.Parallel()
 
 	testObjectSelectorConfiguration := ObjectSelectorConfiguration{
 		Labels: []metav1.LabelSelector{
@@ -326,7 +336,9 @@ func TestObjectSelectorConfiguration_IsEmpty(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.objectSelectorConfiguration.IsEmpty()
 
 			assert.Equal(t, tt.want, found)
@@ -335,6 +347,7 @@ func TestObjectSelectorConfiguration_IsEmpty(t *testing.T) {
 }
 
 func TestObjectSelectorConfiguration_Matches(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		meta metav1.ObjectMeta
 	}
@@ -397,7 +410,9 @@ func TestObjectSelectorConfiguration_Matches(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found, err := tt.objectSelectorConfiguration.Matches(tt.args.meta)
 
 			assert.Equal(t, tt.want, found)

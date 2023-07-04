@@ -5,14 +5,15 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/banzaicloud/imps/api/common"
 	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/banzaicloud/imps/api/common"
 )
 
 func TestDockerConfig_NewDockerRegistryConfig(t *testing.T) {
-
+	t.Parallel()
 	tests := []struct {
 		name string
 		want common.DockerRegistryConfig
@@ -25,7 +26,9 @@ func TestDockerConfig_NewDockerRegistryConfig(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := NewDockerRegistryConfig()
 
 			assert.DeepEqual(t, tt.want, found)
@@ -34,7 +37,7 @@ func TestDockerConfig_NewDockerRegistryConfig(t *testing.T) {
 }
 
 func TestDockerConfig_NewConfig(t *testing.T) {
-
+	t.Parallel()
 	tests := []struct {
 		name string
 		want *Config
@@ -47,7 +50,9 @@ func TestDockerConfig_NewConfig(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := NewConfig()
 
 			assert.DeepEqual(t, tt.want, found)
@@ -56,6 +61,7 @@ func TestDockerConfig_NewConfig(t *testing.T) {
 }
 
 func TestDockerConfig_StaticProviderFromDockerConfig(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		data []byte
 	}
@@ -78,7 +84,9 @@ func TestDockerConfig_StaticProviderFromDockerConfig(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.config.StaticProviderFromDockerConfig(tt.args.data)
 
 			assert.DeepEqual(t, tt.want, found)
@@ -87,6 +95,7 @@ func TestDockerConfig_StaticProviderFromDockerConfig(t *testing.T) {
 }
 
 func TestDockerConfig_getOptionalFieldFromMap(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		data       map[string][]byte
 		key        string
@@ -120,7 +129,9 @@ func TestDockerConfig_getOptionalFieldFromMap(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := getOptionalFieldFromMap(tt.args.data, tt.args.key, tt.args.defaultVal)
 
 			assert.Equal(t, tt.want, found)
@@ -129,6 +140,7 @@ func TestDockerConfig_getOptionalFieldFromMap(t *testing.T) {
 }
 
 func TestDockerConfig_getFieldFromMap(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		data map[string][]byte
 		key  string
@@ -159,7 +171,9 @@ func TestDockerConfig_getFieldFromMap(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found, err := getFieldFromMap(tt.args.data, tt.args.key)
 
 			assert.Equal(t, tt.want, found)
@@ -171,6 +185,7 @@ func TestDockerConfig_getFieldFromMap(t *testing.T) {
 }
 
 func TestDockerConfig_ECRProviderFromSecret(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		data map[string][]byte
 	}
@@ -205,7 +220,9 @@ func TestDockerConfig_ECRProviderFromSecret(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.config.ECRProviderFromSecret(tt.args.data)
 
 			assert.DeepEqual(t, tt.want, found)
@@ -214,21 +231,15 @@ func TestDockerConfig_ECRProviderFromSecret(t *testing.T) {
 }
 
 func TestDockerConfig_ResultingDockerConfig(t *testing.T) {
-	type args struct {
-		ctx context.Context
-	}
+	t.Parallel()
 
 	tests := []struct {
 		name   string
-		args   args
 		config Config
 		want   *ResultingDockerConfig
 	}{
 		{
-			name: "empty config",
-			args: args{
-				ctx: context.Background(),
-			},
+			name:   "empty config",
 			config: Config{},
 			want: &ResultingDockerConfig{
 				ErrorsPerSecret: ErrorsPerSecret{},
@@ -237,9 +248,6 @@ func TestDockerConfig_ResultingDockerConfig(t *testing.T) {
 		},
 		{
 			name: "non-empty config",
-			args: args{
-				ctx: context.Background(),
-			},
 			config: Config{
 				Registries: map[string]LoginCredentialProvider{
 					"testProvider": StaticLoginCredentialProvider{
@@ -258,8 +266,10 @@ func TestDockerConfig_ResultingDockerConfig(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			found, err := tt.config.ResultingDockerConfig(tt.args.ctx)
+			t.Parallel()
+			found, err := tt.config.ResultingDockerConfig(context.Background())
 
 			assert.DeepEqual(t, tt.want, found)
 			assert.NilError(t, err)
@@ -268,6 +278,7 @@ func TestDockerConfig_ResultingDockerConfig(t *testing.T) {
 }
 
 func TestDockerConfig_AsSecret(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		secretNamespace string
 		secretName      string
@@ -298,7 +309,9 @@ func TestDockerConfig_AsSecret(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.resultingDockerConfig.AsSecret(tt.args.secretNamespace, tt.args.secretName)
 
 			assert.DeepEqual(t, tt.want, found)

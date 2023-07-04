@@ -7,6 +7,7 @@ import (
 )
 
 func TestUtil_SecretNameFromURL(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		prefix string
 		url    string
@@ -43,7 +44,9 @@ func TestUtil_SecretNameFromURL(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := SecretNameFromURL(tt.args.prefix, tt.args.url)
 
 			assert.Equal(t, tt.want, found)

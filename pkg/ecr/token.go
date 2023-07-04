@@ -29,7 +29,7 @@ const (
 	assumedTokenValidityTime = 20 * time.Minute
 )
 
-type ECRClientInterface interface {
+type ClientInterface interface {
 	GetAuthorizationToken(ctx context.Context, input *ecr.GetAuthorizationTokenInput, _ ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error)
 }
 
@@ -38,10 +38,10 @@ type Token struct {
 	CurrentToken          *ecrTypes.AuthorizationData
 	TokenValidityDuration time.Duration
 	LastQueriedAt         time.Time
-	Client                ECRClientInterface
+	Client                ClientInterface
 }
 
-func NewECRToken(ctx context.Context, creds StringableCredentials, client ECRClientInterface) (*Token, error) {
+func NewECRToken(ctx context.Context, creds StringableCredentials, client ClientInterface) (*Token, error) {
 	token := &Token{
 		Creds:  creds,
 		Client: client,

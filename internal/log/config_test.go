@@ -8,7 +8,7 @@ import (
 )
 
 func TestConfig_Validate(t *testing.T) {
-
+	t.Parallel()
 	tests := []struct {
 		name        string
 		config      Config
@@ -45,7 +45,9 @@ func TestConfig_Validate(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found, err := tt.config.Validate()
 
 			assert.Equal(t, tt.want, found)

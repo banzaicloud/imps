@@ -9,7 +9,7 @@ import (
 )
 
 func TestImagePullSecret_GetOwnerReferenceForOwnedObject(t *testing.T) {
-
+	t.Parallel()
 	testImagePullSecret := ImagePullSecret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "testAPIVersion",
@@ -40,7 +40,9 @@ func TestImagePullSecret_GetOwnerReferenceForOwnedObject(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.imagePullSecret.GetOwnerReferenceForOwnedObject()
 
 			assert.DeepEqual(t, tt.want, found)
@@ -49,7 +51,7 @@ func TestImagePullSecret_GetOwnerReferenceForOwnedObject(t *testing.T) {
 }
 
 func TestRegistryConfig_CredentialsAsNamespacedNameList(t *testing.T) {
-
+	t.Parallel()
 	testRegistryConfig := RegistryConfig{
 		Credentials: []NamespacedName{
 			{
@@ -92,7 +94,9 @@ func TestRegistryConfig_CredentialsAsNamespacedNameList(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.registryConfig.CredentialsAsNamespacedNameList()
 
 			assert.DeepEqual(t, tt.want, found)

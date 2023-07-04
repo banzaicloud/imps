@@ -9,17 +9,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
-	ecrTypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/stretchr/testify/mock"
 	"gotest.tools/assert"
 	"logur.dev/logur"
 )
 
 func TestTokenManager_GetAuthorizationToken(t *testing.T) {
+	t.Parallel()
 	type args struct {
-		ctx    context.Context
 		key    StringableCredentials
-		client ECRClientInterface
+		client ClientInterface
 	}
 
 	testTokenName := "testToken"
@@ -29,13 +28,12 @@ func TestTokenManager_GetAuthorizationToken(t *testing.T) {
 		args            args
 		mockTokenOutput *ecr.GetAuthorizationTokenOutput
 		tokenManager    *TokenManager
-		wanted          ecrTypes.AuthorizationData
+		wanted          types.AuthorizationData
 		expectedErr     error
 	}{
 		{
 			name: "basic functionality test",
 			args: args{
-				ctx: context.Background(),
 				key: StringableCredentials{
 					aws.Credentials{
 						AccessKeyID: "testAccessKeyID",
@@ -43,6 +41,7 @@ func TestTokenManager_GetAuthorizationToken(t *testing.T) {
 					"testRegion",
 					"testRole",
 				},
+				client: &MockECRClient{},
 			},
 			mockTokenOutput: &ecr.GetAuthorizationTokenOutput{
 				AuthorizationData: []types.AuthorizationData{
@@ -53,9 +52,9 @@ func TestTokenManager_GetAuthorizationToken(t *testing.T) {
 			},
 			tokenManager: &TokenManager{
 				ManagedTokens: map[string]*Token{},
-				Logger:        logur.NewTestLogger(),
+				Logger:        &logur.TestLogger{},
 			},
-			wanted: ecrTypes.AuthorizationData{
+			wanted: types.AuthorizationData{
 				AuthorizationToken: &testTokenName,
 			},
 			expectedErr: nil,
@@ -63,7 +62,6 @@ func TestTokenManager_GetAuthorizationToken(t *testing.T) {
 		{
 			name: "error from NewECRToken",
 			args: args{
-				ctx: context.Background(),
 				key: StringableCredentials{
 					aws.Credentials{
 						AccessKeyID: "testAccessKeyID",
@@ -71,24 +69,27 @@ func TestTokenManager_GetAuthorizationToken(t *testing.T) {
 					"testRegion",
 					"testRole",
 				},
+				client: &MockECRClient{},
 			},
 			mockTokenOutput: &ecr.GetAuthorizationTokenOutput{
 				AuthorizationData: []types.AuthorizationData{},
 			},
 			tokenManager: &TokenManager{
 				ManagedTokens: map[string]*Token{},
-				Logger:        logur.NewTestLogger(),
+				Logger:        &logur.TestLogger{},
 			},
-			wanted:      ecrTypes.AuthorizationData{},
+			wanted:      types.AuthorizationData{},
 			expectedErr: errors.New("no authorization data is returned from ECR"),
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockClient := &MockECRClient{}
 			mockClient.On("GetAuthorizationToken", mock.Anything, mock.Anything).Return(tt.mockTokenOutput, nil)
 
-			found, err := tt.tokenManager.GetAuthorizationToken(tt.args.ctx, tt.args.key, mockClient)
+			found, err := tt.tokenManager.GetAuthorizationToken(context.Background(), tt.args.key, mockClient)
 
 			if tt.expectedErr != nil {
 				assert.Equal(t, tt.expectedErr.Error(), err.Error())
@@ -101,7 +102,7 @@ func TestTokenManager_GetAuthorizationToken(t *testing.T) {
 }
 
 func TestTokenManager_discardOldTokens(t *testing.T) {
-
+	t.Parallel()
 	currentTime := time.Now()
 
 	tests := []struct {
@@ -123,7 +124,9 @@ func TestTokenManager_discardOldTokens(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tt.tokenManager.discardOldTokens()
 
 			assert.DeepEqual(t, tt.tokenManager.ManagedTokens, map[string]*Token{
@@ -136,7 +139,7 @@ func TestTokenManager_discardOldTokens(t *testing.T) {
 }
 
 func TestTokenManager_updateTokens(t *testing.T) {
-
+	t.Parallel()
 	testTokenName := "testToken"
 	expiryTime := time.Now().Add(5 * time.Minute)
 	newExpiryTime := expiryTime.Add(5 * time.Minute)
@@ -162,7 +165,7 @@ func TestTokenManager_updateTokens(t *testing.T) {
 						CurrentToken: nil,
 					},
 				},
-				Logger: logur.NewTestLogger(),
+				Logger: &logur.TestLogger{},
 			},
 		},
 		{
@@ -178,19 +181,21 @@ func TestTokenManager_updateTokens(t *testing.T) {
 			tokenManager: &TokenManager{
 				ManagedTokens: map[string]*Token{
 					"testName": {
-						CurrentToken: &ecrTypes.AuthorizationData{
+						CurrentToken: &types.AuthorizationData{
 							AuthorizationToken: &testTokenName,
 							ExpiresAt:          &expiryTime,
 						},
 						TokenValidityDuration: 10 * time.Minute,
 					},
 				},
-				Logger: logur.NewTestLogger(),
+				Logger: &logur.TestLogger{},
 			},
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockClient := &MockECRClient{}
 			mockClient.On("GetAuthorizationToken", mock.Anything, mock.Anything).Return(tt.mockTokenOutput, nil)
 			tt.tokenManager.ManagedTokens["testName"].Client = mockClient
@@ -198,7 +203,7 @@ func TestTokenManager_updateTokens(t *testing.T) {
 			tt.tokenManager.updateTokens()
 
 			assert.Equal(t, len(tt.tokenManager.ManagedTokens), 1)
-			assert.DeepEqual(t, tt.tokenManager.ManagedTokens["testName"].CurrentToken, &ecrTypes.AuthorizationData{
+			assert.DeepEqual(t, tt.tokenManager.ManagedTokens["testName"].CurrentToken, &types.AuthorizationData{
 				AuthorizationToken: &testTokenName,
 				ExpiresAt:          &newExpiryTime,
 			})
@@ -207,6 +212,7 @@ func TestTokenManager_updateTokens(t *testing.T) {
 }
 
 func TestTokenManager_NewECRTokenManager(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		logger logur.Logger
 	}
@@ -219,16 +225,18 @@ func TestTokenManager_NewECRTokenManager(t *testing.T) {
 		{
 			name: "basic functionality test",
 			args: args{
-				logger: logur.NewTestLogger(),
+				logger: &logur.TestLogger{},
 			},
 			want: &TokenManager{
 				ManagedTokens: map[string]*Token{},
-				Logger:        logur.NewTestLogger(),
+				Logger:        &logur.TestLogger{},
 			},
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := NewECRTokenManager(tt.args.logger)
 
 			assert.Equal(t, len(tt.want.ManagedTokens), len(found.ManagedTokens))
