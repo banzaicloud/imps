@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"context"
-	apiv1 "github.com/banzaicloud/imps/api/v1alpha1"
 	"time"
 
+	apiv1 "github.com/banzaicloud/imps/api/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
@@ -15,7 +15,6 @@ import (
 // +kubebuilder:docs-gen:collapse=Imports
 
 var _ = Describe("IMPS controller", func() {
-
 	// Define utility constants for object names and testing timeouts/durations and intervals.
 	const (
 		ImpsName              = "test-imps"
@@ -25,7 +24,6 @@ var _ = Describe("IMPS controller", func() {
 		TargetSecretNamespace = "target-ns"
 
 		timeout  = time.Second * 20
-		duration = time.Second * 10
 		interval = time.Millisecond * 250
 	)
 
@@ -34,7 +32,6 @@ var _ = Describe("IMPS controller", func() {
 			ctx := context.Background()
 
 			sourceNamespace := &v1.Namespace{
-
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        ImpsNamespace,
 					Annotations: map[string]string{"test.io/test-annotation": "test-value"},
@@ -43,7 +40,6 @@ var _ = Describe("IMPS controller", func() {
 			Expect(k8sClient.Create(ctx, sourceNamespace)).Should(Succeed())
 
 			targetNamespace := &v1.Namespace{
-
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        TargetSecretNamespace,
 					Annotations: map[string]string{"test.io/test-annotation": "test-value"},
@@ -76,10 +72,11 @@ var _ = Describe("IMPS controller", func() {
 						},
 					},
 					Registry: apiv1.RegistryConfig{
-						Credentials: []apiv1.NamespacedName{{
-							Name:      SourceSecretName,
-							Namespace: ImpsNamespace,
-						},
+						Credentials: []apiv1.NamespacedName{
+							{
+								Name:      SourceSecretName,
+								Namespace: ImpsNamespace,
+							},
 						},
 					},
 				},
@@ -92,8 +89,7 @@ var _ = Describe("IMPS controller", func() {
 			By("TODO")
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, secretLookupKey, createdSecret)
-
-				if err != nil {
+				if err != nil { //nolint:gosimple
 					return false
 				}
 
@@ -101,5 +97,4 @@ var _ = Describe("IMPS controller", func() {
 			}, timeout, interval).Should(BeTrue())
 		})
 	})
-
 })

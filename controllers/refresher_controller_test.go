@@ -13,6 +13,7 @@ import (
 )
 
 func TestRefresherReconciler_isTargetSecret(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		secret types.NamespacedName
 	}
@@ -75,7 +76,9 @@ func TestRefresherReconciler_isTargetSecret(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.refresherReconciler.isTargetSecret(tt.args.secret)
 
 			assert.Equal(t, tt.want, found)
@@ -84,6 +87,7 @@ func TestRefresherReconciler_isTargetSecret(t *testing.T) {
 }
 
 func TestRefresherReconciler_isSourceSecret(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		secret types.NamespacedName
 	}
@@ -156,7 +160,9 @@ func TestRefresherReconciler_isSourceSecret(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.refresherReconciler.isSourceSecret(tt.args.secret)
 
 			assert.Equal(t, tt.want, found)
@@ -165,6 +171,7 @@ func TestRefresherReconciler_isSourceSecret(t *testing.T) {
 }
 
 func TestRefresherReconciler_isMatchingSecret(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		obj client.Object
 	}
@@ -180,7 +187,7 @@ func TestRefresherReconciler_isMatchingSecret(t *testing.T) {
 		Name:      "testSecretName2",
 		Namespace: "testSecretNamespace2",
 	}
-	testRefresherReconciler.Log = testlogur.NewTestLogger()
+	testRefresherReconciler.Log = &testlogur.TestLogger{}
 
 	tests := []struct {
 		name                string
@@ -262,7 +269,9 @@ func TestRefresherReconciler_isMatchingSecret(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.refresherReconciler.isMatchingSecret(tt.args.obj)
 
 			assert.Equal(t, tt.want, found)

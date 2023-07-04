@@ -4,11 +4,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/banzaicloud/imps/api/common"
 	"gotest.tools/assert"
+
+	"github.com/banzaicloud/imps/api/common"
 )
 
 func TestStaticLoginCredentialProvider_NewStaticLoginCredentialProvider(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		parsedDockerConfig common.DockerRegistryConfig
 	}
@@ -42,7 +44,9 @@ func TestStaticLoginCredentialProvider_NewStaticLoginCredentialProvider(t *testi
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := NewStaticLoginCredentialProvider(tt.args.parsedDockerConfig)
 
 			assert.DeepEqual(t, tt.wanted, found)
@@ -51,7 +55,7 @@ func TestStaticLoginCredentialProvider_NewStaticLoginCredentialProvider(t *testi
 }
 
 func TestStaticLoginCredentialProvider_LoginCredentials(t *testing.T) {
-
+	t.Parallel()
 	tests := []struct {
 		name                          string
 		staticLoginCredentialProvider StaticLoginCredentialProvider
@@ -80,7 +84,9 @@ func TestStaticLoginCredentialProvider_LoginCredentials(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found, err := tt.staticLoginCredentialProvider.LoginCredentials(context.Background())
 
 			assert.DeepEqual(t, tt.wanted, found)

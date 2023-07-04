@@ -8,7 +8,7 @@ import (
 )
 
 func TestError_NewErrorsPerSecret(t *testing.T) {
-
+	t.Parallel()
 	tests := []struct {
 		name string
 		want ErrorsPerSecret
@@ -19,7 +19,9 @@ func TestError_NewErrorsPerSecret(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := NewErrorsPerSecret()
 
 			assert.DeepEqual(t, tt.want, found)
@@ -28,6 +30,7 @@ func TestError_NewErrorsPerSecret(t *testing.T) {
 }
 
 func TestError_AddSecret(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		name string
 	}
@@ -46,7 +49,9 @@ func TestError_AddSecret(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tt.errorsPerSecret.AddSecret(tt.args.name)
 
 			assert.Assert(t, tt.errorsPerSecret["testSecret"] == nil)
@@ -55,6 +60,7 @@ func TestError_AddSecret(t *testing.T) {
 }
 
 func TestError_SetSecretError(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		name string
 		err  error
@@ -86,7 +92,9 @@ func TestError_SetSecretError(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tt.errorsPerSecret.SetSecretError(tt.args.name, tt.args.err)
 
 			assert.Assert(t, tt.errorsPerSecret["testSecret"].Error() == tt.expectedErrorMessage)
@@ -95,7 +103,7 @@ func TestError_SetSecretError(t *testing.T) {
 }
 
 func TestError_AsStatus(t *testing.T) {
-
+	t.Parallel()
 	testErrorPerSecret := ErrorsPerSecret{}
 	testErrorPerSecret.SetSecretError("testSecret", errors.New("testError"))
 	testErrorPerSecret.AddSecret("testSecret2")
@@ -115,7 +123,9 @@ func TestError_AsStatus(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.errorsPerSecret.AsStatus()
 
 			assert.DeepEqual(t, tt.wanted, found)
@@ -124,7 +134,7 @@ func TestError_AsStatus(t *testing.T) {
 }
 
 func TestError_FailedSecrets(t *testing.T) {
-
+	t.Parallel()
 	testErrorPerSecret := ErrorsPerSecret{}
 	testErrorPerSecret.SetSecretError("testSecret", errors.New("testError"))
 	testErrorPerSecret.AddSecret("testSecret2")
@@ -141,7 +151,9 @@ func TestError_FailedSecrets(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.errorsPerSecret.FailedSecrets()
 
 			assert.DeepEqual(t, tt.wanted, found)
@@ -150,7 +162,7 @@ func TestError_FailedSecrets(t *testing.T) {
 }
 
 func TestError_AsError(t *testing.T) {
-
+	t.Parallel()
 	testErrorPerSecret := ErrorsPerSecret{}
 	testErrorPerSecret.SetSecretError("testSecret", errors.New("testError"))
 	testErrorPerSecret.AddSecret("testSecret2")
@@ -172,7 +184,9 @@ func TestError_AsError(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.errorsPerSecret.AsError()
 
 			if len(tt.errorsPerSecret.FailedSecrets()) > 0 {

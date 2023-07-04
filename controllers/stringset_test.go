@@ -1,11 +1,13 @@
 package controllers
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestStringSet_Has(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		needle string
 	}
@@ -36,7 +38,9 @@ func TestStringSet_Has(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.set.Has(tt.args.needle)
 
 			assert.Equal(t, tt.want, found)

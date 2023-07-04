@@ -11,7 +11,7 @@ import (
 )
 
 func TestStringableCredentials_GetCreds(t *testing.T) {
-
+	t.Parallel()
 	tests := []struct {
 		name                  string
 		stringableCredentials *StringableCredentials
@@ -37,7 +37,9 @@ func TestStringableCredentials_GetCreds(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found, err := tt.stringableCredentials.GetCreds(context.Background())
 
 			assert.Equal(t, tt.want, found)
@@ -47,7 +49,7 @@ func TestStringableCredentials_GetCreds(t *testing.T) {
 }
 
 func TestStringableCredentials_ToAwsConfig(t *testing.T) {
-
+	t.Parallel()
 	tests := []struct {
 		name                  string
 		stringableCredentials *StringableCredentials
@@ -66,7 +68,9 @@ func TestStringableCredentials_ToAwsConfig(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.stringableCredentials.ToAwsConfig()
 
 			assert.Equal(t, tt.want.Region, found.Region)
@@ -78,7 +82,7 @@ func TestStringableCredentials_ToAwsConfig(t *testing.T) {
 }
 
 func TestStringableCredentials_Retrieve(t *testing.T) {
-
+	t.Parallel()
 	tests := []struct {
 		name                  string
 		stringableCredentials *StringableCredentials
@@ -104,7 +108,9 @@ func TestStringableCredentials_Retrieve(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found, err := tt.stringableCredentials.Retrieve(context.Background())
 
 			assert.Equal(t, tt.want, found)
@@ -114,7 +120,7 @@ func TestStringableCredentials_Retrieve(t *testing.T) {
 }
 
 func TestStringableCredentials_String(t *testing.T) {
-
+	t.Parallel()
 	tests := []struct {
 		name                  string
 		stringableCredentials *StringableCredentials
@@ -151,7 +157,9 @@ func TestStringableCredentials_String(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.stringableCredentials.String()
 
 			assert.Equal(t, tt.want, found)

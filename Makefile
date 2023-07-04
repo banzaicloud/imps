@@ -50,7 +50,7 @@ all: build
 
 .PHONY: test
 test: ensure-tools generate fmt vet manifests 	## Run tests
-	KUBEBUILDER_ASSETS="${REPO_ROOT}/bin/envtest/bin/" go test  ${GOARGS} ./... -coverprofile cover.out -ginkgo.v
+	KUBEBUILDER_ASSETS="${REPO_ROOT}/bin/envtest/bin/" go test  ${GOARGS} ./... -coverprofile cover.out
 
 .PHONY: test-reconciler
 test-reconciler: ensure-tools generate fmt vet manifests bin/setup-envtest

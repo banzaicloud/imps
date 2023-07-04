@@ -17,14 +17,15 @@ type MockECRClient struct {
 
 func (m *MockECRClient) GetAuthorizationToken(ctx context.Context, input *ecr.GetAuthorizationTokenInput, _ ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error) {
 	args := m.Called(ctx, input)
+	// nolint:forcetypeassert
 	return args.Get(0).(*ecr.GetAuthorizationTokenOutput), args.Error(1)
 }
 
 func TestToken_NewECRToken(t *testing.T) {
+	t.Parallel()
 	type args struct {
-		ctx    context.Context
 		creds  StringableCredentials
-		client ECRClientInterface
+		client ClientInterface
 	}
 
 	mockClient := &MockECRClient{}
@@ -47,7 +48,6 @@ func TestToken_NewECRToken(t *testing.T) {
 		{
 			name: "basic functionality test",
 			args: args{
-				ctx:    context.Background(),
 				creds:  StringableCredentials{},
 				client: mockClient,
 			},
@@ -61,7 +61,6 @@ func TestToken_NewECRToken(t *testing.T) {
 		{
 			name: "no token returned",
 			args: args{
-				ctx:    context.Background(),
 				creds:  StringableCredentials{},
 				client: nil,
 			},
@@ -70,8 +69,10 @@ func TestToken_NewECRToken(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			found, err := NewECRToken(tt.args.ctx, tt.args.creds, tt.args.client)
+			t.Parallel()
+			found, err := NewECRToken(context.Background(), tt.args.creds, tt.args.client)
 
 			if tt.expectedErr != nil {
 				assert.Equal(t, tt.expectedErr.Error(), err.Error())
@@ -84,24 +85,18 @@ func TestToken_NewECRToken(t *testing.T) {
 }
 
 func TestToken_Refresh(t *testing.T) {
-	type args struct {
-		ctx context.Context
-	}
+	t.Parallel()
 
 	testTokenName := "testToken"
 
 	tests := []struct {
 		name            string
-		args            args
 		mockTokenOutput *ecr.GetAuthorizationTokenOutput
 		token           *Token
 		expectedErr     error
 	}{
 		{
 			name: "basic functionality test",
-			args: args{
-				ctx: context.Background(),
-			},
 			mockTokenOutput: &ecr.GetAuthorizationTokenOutput{
 				AuthorizationData: []types.AuthorizationData{
 					{
@@ -114,9 +109,6 @@ func TestToken_Refresh(t *testing.T) {
 		},
 		{
 			name: "no authorization data",
-			args: args{
-				ctx: context.Background(),
-			},
 			mockTokenOutput: &ecr.GetAuthorizationTokenOutput{
 				AuthorizationData: nil,
 			},
@@ -125,9 +117,6 @@ func TestToken_Refresh(t *testing.T) {
 		},
 		{
 			name: "multiple authorization records",
-			args: args{
-				ctx: context.Background(),
-			},
 			mockTokenOutput: &ecr.GetAuthorizationTokenOutput{
 				AuthorizationData: []types.AuthorizationData{
 					{
@@ -143,9 +132,6 @@ func TestToken_Refresh(t *testing.T) {
 		},
 		{
 			name: "authorization token is empty",
-			args: args{
-				ctx: context.Background(),
-			},
 			mockTokenOutput: &ecr.GetAuthorizationTokenOutput{
 				AuthorizationData: []types.AuthorizationData{{}},
 			},
@@ -154,12 +140,14 @@ func TestToken_Refresh(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockClient := &MockECRClient{}
 			mockClient.On("GetAuthorizationToken", mock.Anything, mock.Anything).Return(tt.mockTokenOutput, nil)
 			tt.token.Client = mockClient
 
-			err := tt.token.Refresh(tt.args.ctx)
+			err := tt.token.Refresh(context.Background())
 
 			if tt.expectedErr != nil {
 				assert.Equal(t, tt.expectedErr.Error(), err.Error())

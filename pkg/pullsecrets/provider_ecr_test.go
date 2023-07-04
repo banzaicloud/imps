@@ -8,14 +8,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
-	"github.com/banzaicloud/imps/api/common"
-	impsEcr "github.com/banzaicloud/imps/pkg/ecr"
 	"github.com/stretchr/testify/mock"
 	"gotest.tools/assert"
 	"logur.dev/logur"
+
+	"github.com/banzaicloud/imps/api/common"
+	impsEcr "github.com/banzaicloud/imps/pkg/ecr"
 )
 
 func TestECRLoginCredentialsProvider_NewECRLoginCredentialsProvider(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		accountID       string
 		region          string
@@ -50,7 +52,9 @@ func TestECRLoginCredentialsProvider_NewECRLoginCredentialsProvider(t *testing.T
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := NewECRLoginCredentialsProvider(tt.args.accountID, tt.args.region, tt.args.keyID, tt.args.secretAccessKey, tt.args.roleArn, nil)
 
 			assert.DeepEqual(t, tt.wanted, found)
@@ -59,7 +63,7 @@ func TestECRLoginCredentialsProvider_NewECRLoginCredentialsProvider(t *testing.T
 }
 
 func TestECRLoginCredentialsProvider_GetURL(t *testing.T) {
-
+	t.Parallel()
 	tests := []struct {
 		name                        string
 		ecrLoginCredentialsProvider ECRLoginCredentialsProvider
@@ -80,7 +84,9 @@ func TestECRLoginCredentialsProvider_GetURL(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			found := tt.ecrLoginCredentialsProvider.GetURL()
 
 			assert.DeepEqual(t, tt.wanted, found)
@@ -94,14 +100,12 @@ type MockECRClient struct {
 
 func (m *MockECRClient) GetAuthorizationToken(ctx context.Context, input *ecr.GetAuthorizationTokenInput, _ ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error) {
 	args := m.Called(ctx, input)
+	// nolint:forcetypeassert
 	return args.Get(0).(*ecr.GetAuthorizationTokenOutput), args.Error(1)
 }
 
 func TestECRLoginCredentialsProvider_LoginCredentials(t *testing.T) {
-	type args struct {
-		ctx context.Context
-	}
-
+	t.Parallel()
 	mockClient := &MockECRClient{}
 	testTokenName := base64.StdEncoding.EncodeToString([]byte("testUser:testPass"))
 	mockTokenOutput := &ecr.GetAuthorizationTokenOutput{
@@ -115,15 +119,11 @@ func TestECRLoginCredentialsProvider_LoginCredentials(t *testing.T) {
 
 	tests := []struct {
 		name                        string
-		args                        args
 		ecrLoginCredentialsProvider ECRLoginCredentialsProvider
 		wanted                      []LoginCredentialsWithDetails
 	}{
 		{
 			name: "basic functionality test",
-			args: args{
-				ctx: context.Background(),
-			},
 			ecrLoginCredentialsProvider: ECRLoginCredentialsProvider{
 				Region:    "testRegion",
 				AccountID: "testAccountID",
@@ -147,9 +147,11 @@ func TestECRLoginCredentialsProvider_LoginCredentials(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			impsEcr.Initialize(logur.NewTestLogger())
-			found, err := tt.ecrLoginCredentialsProvider.LoginCredentials(tt.args.ctx)
+			t.Parallel()
+			impsEcr.Initialize(&logur.TestLogger{})
+			found, err := tt.ecrLoginCredentialsProvider.LoginCredentials(context.Background())
 
 			assert.DeepEqual(t, tt.wanted, found)
 			assert.NilError(t, err)

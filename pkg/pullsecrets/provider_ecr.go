@@ -31,10 +31,10 @@ type ECRLoginCredentialsProvider struct {
 	Region      string
 	AccountID   string
 	RoleArn     string
-	Client      impsEcr.ECRClientInterface
+	Client      impsEcr.ClientInterface
 }
 
-func NewECRLoginCredentialsProvider(accountID, region, keyID, secretAccessKey string, roleArn string, client impsEcr.ECRClientInterface) ECRLoginCredentialsProvider {
+func NewECRLoginCredentialsProvider(accountID, region, keyID, secretAccessKey string, roleArn string, client impsEcr.ClientInterface) ECRLoginCredentialsProvider {
 	return ECRLoginCredentialsProvider{
 		Credentials: aws.Credentials{
 			AccessKeyID:     keyID,

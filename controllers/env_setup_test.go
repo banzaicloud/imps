@@ -2,27 +2,24 @@ package controllers
 
 import (
 	"context"
-	apiv1 "github.com/banzaicloud/imps/api/v1alpha1"
-	"github.com/cisco-open/operator-tools/pkg/reconciler"
-	logrintegration "logur.dev/integration/logr"
-	"logur.dev/logur"
 	"path/filepath"
 	"testing"
 	"time"
 
-	ctrl "sigs.k8s.io/controller-runtime"
-
+	apiv1 "github.com/banzaicloud/imps/api/v1alpha1"
+	logging "github.com/banzaicloud/imps/internal/log"
+	"github.com/cisco-open/operator-tools/pkg/reconciler"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	logging "github.com/banzaicloud/imps/internal/log"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	logrintegration "logur.dev/integration/logr"
+	"logur.dev/logur"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	//+kubebuilder:scaffold:imports
 )
 
 var (
@@ -34,6 +31,7 @@ var (
 )
 
 func TestControllers(t *testing.T) {
+	t.Parallel()
 	RegisterFailHandler(Fail)
 
 	RunSpecs(t, "Controller Suite")
@@ -88,7 +86,6 @@ var _ = BeforeSuite(func() {
 		err = k8sManager.Start(ctx)
 		Expect(err).ToNot(HaveOccurred(), "failed to run manager")
 	}()
-
 })
 
 var _ = AfterSuite(func() {
