@@ -12,6 +12,9 @@ CRD_OPTIONS ?= "crd"
 # CRD_OPTIONS ?= "crd:trivialVersions=true,allowDangerousTypes=true"
 LICENSEI_VERSION = 0.7.0
 GOLANGCI_VERSION ?= 1.52.2
+ENVTEST_K8S_VERSION = 1.26.0
+
+
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -47,7 +50,7 @@ all: build
 
 .PHONY: test
 test: ensure-tools generate fmt vet manifests 	## Run tests
-	KUBEBUILDER_ASSETS="${REPO_ROOT}/bin/kubebuilder-2.3.1/bin/" go test  ${GOARGS} ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="${REPO_ROOT}/bin/envtest/bin/" go test  ${GOARGS} ./... -coverprofile cover.out -ginkgo.v
 
 bin/golangci-lint: bin/golangci-lint-${GOLANGCI_VERSION}
 	@ln -sf golangci-lint-${GOLANGCI_VERSION} bin/golangci-lint
@@ -162,3 +165,7 @@ MAKEFILE_LIST=Makefile
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+
+# Install envtest
+install-envtest:
+	scripts/install_envtest.sh ${ENVTEST_K8S_VERSION}
