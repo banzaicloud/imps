@@ -52,23 +52,6 @@ all: build
 test: ensure-tools generate fmt vet manifests 	## Run tests
 	KUBEBUILDER_ASSETS="${REPO_ROOT}/bin/envtest/bin/" go test  ${GOARGS} ./... -coverprofile cover.out
 
-.PHONY: test-reconciler
-test-reconciler: ensure-tools generate fmt vet manifests bin/setup-envtest
-	bin/setup-envtest use -p env 1.23.5 > bin/envtest.sh \
-    		&& source bin/envtest.sh; \
-    		go test ./... \
-    			-coverprofile cover.out
-
-bin/setup-envtest: ## find or download setup-envtest
-	@ if ! test -x $(PWD)/bin/setup-envtest; then \
-		set -ex ;\
-		SETUP_ENVTEST_TMP_DIR=$$(mktemp -d) ;\
-		cd $$SETUP_ENVTEST_TMP_DIR ;\
-		go mod init tmp ;\
-		GOBIN=$(PWD)/bin go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest ;\
-		rm -rf $$SETUP_ENVTEST_TMP_DIR ;\
-	fi
-
 bin/golangci-lint: bin/golangci-lint-${GOLANGCI_VERSION}
 	@ln -sf golangci-lint-${GOLANGCI_VERSION} bin/golangci-lint
 bin/golangci-lint-${GOLANGCI_VERSION}:
@@ -80,8 +63,8 @@ DISABLED_LINTERS ?= --disable=gci --disable=goimports --disable=gofumpt
 .PHONY: lint
 lint: bin/golangci-lint ## Run linter
 # "unused" linter is a memory hog, but running it separately keeps it contained (probably because of caching)
-	bin/golangci-lint run --disable=unused -c .golangci.yml --timeout 2m
-	bin/golangci-lint run -c .golangci.yml --timeout 2m
+	bin/golangci-lint run --disable=unused -c .golangci.yml --timeout 5m
+	bin/golangci-lint run -c .golangci.yml --timeout 5m
 
 .PHONY: lint-fix
 lint-fix: bin/golangci-lint ## Run linter & fix

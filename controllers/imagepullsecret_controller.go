@@ -19,8 +19,6 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
-	"github.com/banzaicloud/imps/api/v1alpha1"
-	"github.com/banzaicloud/imps/internal/cron"
 	"github.com/cisco-open/operator-tools/pkg/reconciler"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -33,6 +31,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+
+	"github.com/banzaicloud/imps/api/v1alpha1"
+	"github.com/banzaicloud/imps/internal/cron"
 )
 
 // AlertingPolicyReconciler reconciles a AlertingPolicy object

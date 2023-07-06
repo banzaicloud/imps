@@ -4,12 +4,13 @@ import (
 	"context"
 	"time"
 
-	apiv1 "github.com/banzaicloud/imps/api/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+
+	apiv1 "github.com/banzaicloud/imps/api/v1alpha1"
 )
 
 // +kubebuilder:docs-gen:collapse=Imports

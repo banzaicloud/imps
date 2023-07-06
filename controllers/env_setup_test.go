@@ -6,8 +6,6 @@ import (
 	"testing"
 	"time"
 
-	apiv1 "github.com/banzaicloud/imps/api/v1alpha1"
-	logging "github.com/banzaicloud/imps/internal/log"
 	"github.com/cisco-open/operator-tools/pkg/reconciler"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -20,6 +18,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	apiv1 "github.com/banzaicloud/imps/api/v1alpha1"
+	logging "github.com/banzaicloud/imps/internal/log"
 )
 
 var (
