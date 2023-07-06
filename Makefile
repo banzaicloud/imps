@@ -111,6 +111,7 @@ run: generate fmt vet manifests		## Run against the configured Kubernetes cluste
 ensure-tools:
 	@scripts/download-deps.sh
 	@scripts/install_kustomize.sh
+	@scripts/install_envtest.sh ${ENVTEST_K8S_VERSION}
 
 .PHONY: install
 install: ensure-tools manifests  		## Install CRDs into a cluster
@@ -181,8 +182,3 @@ MAKEFILE_LIST=Makefile
 .DEFAULT_GOAL := help
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-
-
-# Install envtest
-install-envtest:
-	scripts/install_envtest.sh ${ENVTEST_K8S_VERSION}
