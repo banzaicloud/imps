@@ -42,12 +42,12 @@ func Initialize(logger logur.Logger) {
 
 var tokenManager *TokenManager
 
-func GetAuthorizationToken(ctx context.Context, region string, credentials aws.Credentials, roleArn string) (ecrTypes.AuthorizationData, error) {
+func GetAuthorizationToken(ctx context.Context, region string, credentials aws.Credentials, roleArn string, client ClientInterface) (ecrTypes.AuthorizationData, error) {
 	return tokenManager.GetAuthorizationToken(ctx, StringableCredentials{
 		Credentials: credentials,
 		Region:      region,
 		RoleArn:     roleArn,
-	})
+	}, client)
 }
 
 func NewECRTokenManager(logger logur.Logger) *TokenManager {
@@ -104,12 +104,12 @@ func (t *TokenManager) discardOldTokens() {
 	}
 }
 
-func (t *TokenManager) GetAuthorizationToken(ctx context.Context, key StringableCredentials) (ecrTypes.AuthorizationData, error) {
+func (t *TokenManager) GetAuthorizationToken(ctx context.Context, key StringableCredentials, client ClientInterface) (ecrTypes.AuthorizationData, error) {
 	t.Lock()
 	defer t.Unlock()
 	token, found := t.ManagedTokens[key.String()]
 	if !found {
-		token, err := NewECRToken(ctx, key)
+		token, err := NewECRToken(ctx, key, client)
 		if err != nil {
 			return ecrTypes.AuthorizationData{}, err
 		}

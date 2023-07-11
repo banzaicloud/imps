@@ -12,6 +12,9 @@ CRD_OPTIONS ?= "crd"
 # CRD_OPTIONS ?= "crd:trivialVersions=true,allowDangerousTypes=true"
 LICENSEI_VERSION = 0.7.0
 GOLANGCI_VERSION ?= 1.52.2
+ENVTEST_K8S_VERSION = 1.26.0
+
+
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -47,7 +50,7 @@ all: build
 
 .PHONY: test
 test: ensure-tools generate fmt vet manifests 	## Run tests
-	KUBEBUILDER_ASSETS="${REPO_ROOT}/bin/kubebuilder-2.3.1/bin/" go test  ${GOARGS} ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="${REPO_ROOT}/bin/envtest/bin/" go test  ${GOARGS} ./... -coverprofile cover.out
 
 bin/golangci-lint: bin/golangci-lint-${GOLANGCI_VERSION}
 	@ln -sf golangci-lint-${GOLANGCI_VERSION} bin/golangci-lint
@@ -60,8 +63,8 @@ DISABLED_LINTERS ?= --disable=gci --disable=goimports --disable=gofumpt
 .PHONY: lint
 lint: bin/golangci-lint ## Run linter
 # "unused" linter is a memory hog, but running it separately keeps it contained (probably because of caching)
-	bin/golangci-lint run --disable=unused -c .golangci.yml --timeout 2m
-	bin/golangci-lint run -c .golangci.yml --timeout 2m
+	bin/golangci-lint run --disable=unused -c .golangci.yml --timeout 5m
+	bin/golangci-lint run -c .golangci.yml --timeout 5m
 
 .PHONY: lint-fix
 lint-fix: bin/golangci-lint ## Run linter & fix
@@ -91,6 +94,7 @@ run: generate fmt vet manifests		## Run against the configured Kubernetes cluste
 ensure-tools:
 	@scripts/download-deps.sh
 	@scripts/install_kustomize.sh
+	@scripts/install_envtest.sh ${ENVTEST_K8S_VERSION}
 
 .PHONY: install
 install: ensure-tools manifests  		## Install CRDs into a cluster
@@ -161,4 +165,3 @@ MAKEFILE_LIST=Makefile
 .DEFAULT_GOAL := help
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-

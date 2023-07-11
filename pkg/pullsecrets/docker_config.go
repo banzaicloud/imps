@@ -142,7 +142,7 @@ func (c *Config) ECRProviderFromSecret(data map[string][]byte) LoginCredentialPr
 
 	roleArn := getOptionalFieldFromMap(data, common.ECRRoleArn, "")
 
-	return NewECRLoginCredentialsProvider(accountID, region, accKeyID, secretKey, roleArn)
+	return NewECRLoginCredentialsProvider(accountID, region, accKeyID, secretKey, roleArn, nil)
 }
 
 type ResultingDockerConfig struct {
