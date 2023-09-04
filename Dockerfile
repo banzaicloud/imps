@@ -37,7 +37,7 @@ RUN go build -o /usr/local/bin/manager ./cmd/controller/
 RUN xx-verify /usr/local/bin/manager
 
 
-FROM redhat/ubi8-micro:8.7@sha256:6a56010de933f172b195a1a575855d37b70a4968be8edb35157f6ca193969ad2 AS ubi8
+FROM redhat/ubi8-micro:8.8@sha256:c743e8d6f673f8287a07e3590cbf65dfa7c5c21bb81df6dbd4d9a2fcf21173cd AS ubi8
 ARG UID
 ARG GID
 
